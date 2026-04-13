@@ -1,61 +1,219 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏫 Virtual Tour University
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="public/asset/logo-unpam-300x291.png" width="120" alt="Logo Universitas">
 </p>
 
-## About Laravel
+<p align="center">
+  Aplikasi Virtual Tour berbasis web untuk menampilkan lingkungan kampus secara interaktif menggunakan teknologi 360°.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <img src="https://img.shields.io/badge/Laravel-11-red?style=for-the-badge&logo=laravel" alt="Laravel 11">
+  <img src="https://img.shields.io/badge/PHP-8.2+-blue?style=for-the-badge&logo=php" alt="PHP 8.2">
+  <img src="https://img.shields.io/badge/TailwindCSS-3-06B6D4?style=for-the-badge&logo=tailwindcss" alt="TailwindCSS">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 📋 Daftar Isi
 
-## Learning Laravel
+- [Tentang Proyek](#-tentang-proyek)
+- [Fitur](#-fitur)
+- [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
+- [Struktur Proyek](#-struktur-proyek)
+- [Cara Instalasi](#-cara-instalasi)
+- [Konfigurasi](#-konfigurasi)
+- [Menjalankan Aplikasi](#-menjalankan-aplikasi)
+- [Akses Admin](#-akses-admin)
+- [Lisensi](#-lisensi)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🎯 Tentang Proyek
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**Virtual Tour University** adalah aplikasi web interaktif yang memungkinkan pengguna untuk menjelajahi lingkungan kampus secara virtual menggunakan teknologi panorama 360°. Aplikasi ini dibangun di atas framework Laravel 11 dengan antarmuka yang modern dan responsif menggunakan Tailwind CSS.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## ✨ Fitur
 
-### Premium Partners
+### 👥 Fitur Publik
+- **🏠 Halaman Beranda** — Informasi umum dan sambutan kampus
+- **🔭 Virtual Tour 360°** — Jelajahi kampus secara interaktif dengan hotspot navigasi
+- **🏛️ Fasilitas** — Galeri dan informasi fasilitas kampus
+- **ℹ️ Tentang** — Profil dan sejarah universitas
+- **📩 Kritik & Saran** — Form pengiriman masukan dari pengunjung
+- **📊 Tracking Pengunjung** — Statistik kunjungan otomatis
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 🔐 Fitur Admin
+- **Dashboard** — Statistik pengunjung dan ringkasan data
+- **Manajemen Konten** — Update konten halaman secara dinamis
+- **Manajemen Fasilitas** — Tambah, edit, hapus data fasilitas
+- **Manajemen Scene VR** — Kelola scene panorama 360° (tambah/edit/hapus)
+- **Manajemen Hotspot** — Tambah dan hapus titik navigasi antar scene
+- **Manajemen Pengguna** — Kelola akun admin
+- **Upload Gambar** — Upload dan kelola aset gambar
+- **Kritik & Saran** — Lihat dan hapus masukan dari pengunjung
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🛠️ Teknologi yang Digunakan
 
-## Code of Conduct
+| Teknologi | Versi | Keterangan |
+|-----------|-------|------------|
+| **PHP** | ^8.2 | Backend language |
+| **Laravel** | ^11.31 | PHP Framework |
+| **MySQL** | - | Database |
+| **Tailwind CSS** | ^3 | CSS Framework |
+| **Vite** | - | Asset Bundler |
+| **Laravel Tinker** | ^2.9 | REPL Tool |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
+
+## 📁 Struktur Proyek
+
+```
+virtual-tour-laravel/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/       # Controller aplikasi
+│   │   └── Middleware/        # AdminAuth & TrackVisitor
+│   ├── Models/                # Eloquent Models
+│   └── Providers/
+├── database/
+│   ├── migrations/            # Skema database
+│   └── seeders/
+├── public/
+│   └── asset/                 # Gambar & aset publik
+├── resources/
+│   ├── css/                   # Stylesheet
+│   ├── js/                    # JavaScript
+│   └── views/                 # Blade templates
+│       ├── admin/             # Halaman admin
+│       ├── layouts/           # Layout utama
+│       └── partials/          # Komponen partial
+└── routes/
+    └── web.php                # Definisi route
+```
+
+---
+
+## 🚀 Cara Instalasi
+
+### Prasyarat
+Pastikan sudah terinstall:
+- PHP >= 8.2
+- Composer
+- Node.js & NPM
+- MySQL
+
+### Langkah Instalasi
+
+**1. Clone repository**
+```bash
+git clone https://github.com/ghilmanfz/Virtual-Tour-University.git
+cd Virtual-Tour-University
+git checkout withlaravel
+```
+
+**2. Install dependensi PHP**
+```bash
+composer install
+```
+
+**3. Install dependensi Node.js**
+```bash
+npm install
+```
+
+**4. Salin file environment**
+```bash
+cp .env.example .env
+```
+
+**5. Generate application key**
+```bash
+php artisan key:generate
+```
+
+---
+
+## ⚙️ Konfigurasi
+
+Edit file `.env` sesuaikan dengan konfigurasi lokal Anda:
+
+```env
+APP_NAME="Virtual Tour University"
+APP_URL=http://localhost
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=virtual_tour
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**Jalankan migrasi database:**
+```bash
+php artisan migrate
+```
+
+**Jalankan seeder (opsional):**
+```bash
+php artisan db:seed
+```
+
+---
+
+## ▶️ Menjalankan Aplikasi
+
+**Build assets (development):**
+```bash
+npm run dev
+```
+
+**Build assets (production):**
+```bash
+npm run build
+```
+
+**Jalankan server lokal:**
+```bash
+php artisan serve
+```
+
+Akses aplikasi di: `http://localhost:8000`
+
+---
+
+## 🔑 Akses Admin
+
+Halaman admin dapat diakses melalui:
+```
+http://localhost:8000/login
+```
+
+> Buat akun admin melalui seeder atau langsung di database pada tabel `admins`.
+
+Panel admin tersedia di:
+```
+http://localhost:8000/admin/dashboard
+```
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  Dibuat dengan ❤️ menggunakan <a href="https://laravel.com">Laravel</a>
+</p>
 
 ## Security Vulnerabilities
 
