@@ -49,6 +49,7 @@ Route::middleware(AdminAuth::class)->prefix('admin')->group(function () {
     Route::post('/hotspot/delete', [AdminController::class, 'deleteHotspot'])->name('admin.hotspot.delete');
 
     Route::post('/kritik-saran/delete', [AdminController::class, 'deleteKritikSaran'])->name('admin.kritik.delete');
+    Route::post('/kritik-saran/telegram', [AdminController::class, 'updateTelegramSettings'])->name('admin.kritik.telegram.update');
 
     Route::post('/upload', [AdminController::class, 'uploadImage'])->name('admin.upload');
     Route::post('/image/delete', [AdminController::class, 'deleteImage'])->name('admin.image.delete');

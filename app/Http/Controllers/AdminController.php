@@ -23,6 +23,13 @@ class AdminController extends Controller
         $vrScenes = VrScene::orderBy('id')->get();
         $vrHotspots = VrHotspot::with('scene')->orderBy('scene_id')->orderBy('id')->get();
         $kritikSaran = KritikSaran::orderByDesc('created_at')->get();
+        $telegramSettingsFromDb = Content::whereIn('content_key', ['telegram_bot_token', 'telegram_chat_id'])
+            ->pluck('content_value', 'content_key');
+
+        $telegramSettings = [
+            'bot_token' => $telegramSettingsFromDb->get('telegram_bot_token', config('services.telegram.bot_token', '')),
+            'chat_id' => $telegramSettingsFromDb->get('telegram_chat_id', config('services.telegram.chat_id', '')),
+        ];
 
         // Dashboard statistics
         $stats = [
@@ -49,7 +56,7 @@ class AdminController extends Controller
 
         return view('admin.dashboard', compact(
             'contents', 'facilities', 'users', 'vrScenes', 'vrHotspots',
-            'kritikSaran', 'stats', 'recentVisitors', 'images'
+            'kritikSaran', 'stats', 'recentVisitors', 'images', 'telegramSettings'
         ));
     }
 
@@ -150,6 +157,34 @@ class AdminController extends Controller
         $request->validate(['kritik_id' => 'required|integer']);
         KritikSaran::where('id', $request->kritik_id)->delete();
         return redirect()->route('admin.dashboard', ['tab' => 'kritik-saran'])->with('success', 'Kritik & Saran berhasil dihapus!');
+    }
+
+    public function updateTelegramSettings(Request $request)
+    {
+        $request->validate([
+            'telegram_bot_token' => 'nullable|string|max:255',
+            'telegram_chat_id' => 'nullable|string|max:100',
+        ]);
+
+        Content::updateOrCreate(
+            ['content_key' => 'telegram_bot_token'],
+            [
+                'section' => 'integrations',
+                'content_value' => $request->telegram_bot_token ?? '',
+                'content_type' => 'text',
+            ]
+        );
+
+        Content::updateOrCreate(
+            ['content_key' => 'telegram_chat_id'],
+            [
+                'section' => 'integrations',
+                'content_value' => $request->telegram_chat_id ?? '',
+                'content_type' => 'text',
+            ]
+        );
+
+        return redirect()->route('admin.dashboard', ['tab' => 'kritik-saran'])->with('success', 'Pengaturan Telegram berhasil disimpan!');
     }
 
     public function uploadImage(Request $request)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\KritikSaran;
+use App\Models\Content;
 use Illuminate\Support\Facades\Http;
 
 class KritikSaranController extends Controller
@@ -22,16 +23,23 @@ class KritikSaranController extends Controller
             'pesan' => $request->pesan,
         ]);
 
-        // Telegram notification (optional - configure in .env)
-        $token = config('services.telegram.bot_token');
-        $chatId = config('services.telegram.chat_id');
+        $telegramSettings = Content::whereIn('content_key', ['telegram_bot_token', 'telegram_chat_id'])
+            ->pluck('content_value', 'content_key');
+
+        // Prefer admin settings from database, fallback to .env config.
+        $token = $telegramSettings->get('telegram_bot_token') ?: config('services.telegram.bot_token');
+        $chatId = $telegramSettings->get('telegram_chat_id') ?: config('services.telegram.chat_id');
 
         if ($token && $chatId) {
             $text = "📩 KRITIK & SARAN BARU\n\n👤 Nama: {$request->nama}\n📧 Email/HP: {$request->kontak}\n📝 Pesan: {$request->pesan}";
-            Http::get("https://api.telegram.org/bot{$token}/sendMessage", [
-                'chat_id' => $chatId,
-                'text' => $text,
-            ]);
+            try {
+                Http::get("https://api.telegram.org/bot{$token}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => $text,
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         return redirect()->route('home')->with('success', 'Pesan berhasil dikirim!');

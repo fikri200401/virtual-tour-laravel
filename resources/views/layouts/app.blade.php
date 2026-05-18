@@ -28,9 +28,7 @@
                 <a href="{{ route('virtual-tour') }}" class="hover:text-yellow-300">Virtual Tour</a>
                 <a href="{{ route('fasilitas') }}" class="hover:text-yellow-300">Fasilitas</a>
                 <a href="{{ route('tentang') }}" class="hover:text-yellow-300">Tentang</a>
-                @if(request()->routeIs('login'))
-                    <a href="{{ route('login') }}" class="hover:text-gray-200">Login Admin</a>
-                @endif
+                <a href="{{ route('login') }}" class="hover:text-yellow-300">Login Admin</a>
             </div>
             <button class="md:hidden focus:outline-none" @click="mobileMenuOpen = !mobileMenuOpen">
                 <i class="fas fa-bars text-2xl"></i>
@@ -42,6 +40,7 @@
             <a href="{{ route('virtual-tour') }}" class="block hover:text-yellow-300">Virtual Tour</a>
             <a href="{{ route('fasilitas') }}" class="block hover:text-yellow-300">Fasilitas</a>
             <a href="{{ route('tentang') }}" class="block hover:text-yellow-300">Tentang</a>
+            <a href="{{ route('login') }}" class="block hover:text-yellow-300">Login Admin</a>
         </div>
     </nav>
 

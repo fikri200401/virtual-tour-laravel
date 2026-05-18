@@ -574,6 +574,27 @@
             <div x-show="activeTab === 'kritik-saran'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola Kritik & Saran</h2>
 
+                <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-lg mb-6">
+                    <h3 class="text-lg font-semibold text-indigo-800 mb-3">Pengaturan Telegram Notifikasi</h3>
+                    <p class="text-sm text-indigo-700 mb-4">Atur token bot dan chat ID di sini. Kosongkan salah satu field jika ingin menonaktifkan notifikasi Telegram.</p>
+                    <form action="{{ route('admin.kritik.telegram.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @csrf
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bot Token</label>
+                            <input type="text" name="telegram_bot_token" value="{{ $telegramSettings['bot_token'] ?? '' }}" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Contoh: 123456789:AA...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Chat ID</label>
+                            <input type="text" name="telegram_chat_id" value="{{ $telegramSettings['chat_id'] ?? '' }}" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Contoh: 1769041604">
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">
+                                <i class="fas fa-save mr-1"></i>Simpan Pengaturan Telegram
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="bg-blue-50 p-4 rounded-lg mb-6">
                     <div class="flex items-center justify-between">
                         <div>
