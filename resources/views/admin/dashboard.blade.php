@@ -576,7 +576,7 @@
 
                 <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-lg mb-6">
                     <h3 class="text-lg font-semibold text-indigo-800 mb-3">Pengaturan Telegram Notifikasi</h3>
-                    <p class="text-sm text-indigo-700 mb-4">Atur token bot dan chat ID di sini. Kosongkan salah satu field jika ingin menonaktifkan notifikasi Telegram.</p>
+                    <p class="text-sm text-indigo-700 mb-4">Atur token bot dan chat ID di sini. Kosongkan salah satu field jika ingin menonaktifkan notifikasi Telegram. Untuk Token Bot didapat dari @BotFather di Telegram. untuk Chat id didapat dari @userinfobot di Telegram.</p>
                     <form action="{{ route('admin.kritik.telegram.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @csrf
                         <div>
