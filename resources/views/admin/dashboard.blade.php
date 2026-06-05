@@ -419,6 +419,76 @@
             <div x-show="activeTab === 'virtual-tour'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola Virtual Tour</h2>
 
+                <!-- 3DVista Tours Info -->
+                <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-200">
+                    <h3 class="text-lg font-semibold mb-3 text-indigo-800">
+                        <i class="fas fa-street-view mr-2"></i>Tour Virtual 3DVista (Embed)
+                    </h3>
+                    <p class="text-sm text-indigo-700 mb-3">
+                        Tour 3DVista dikelola sebagai file statis di folder <code class="bg-white px-2 py-0.5 rounded text-xs">public/virtual-tours/</code>.
+                        Untuk menambah tour baru, extract file ZIP dari client ke subfolder baru di folder tersebut.
+                    </p>
+
+                    @php
+                        $deployedTours = [];
+                        $tourBasePath = public_path('virtual-tours');
+                        if (\Illuminate\Support\Facades\File::isDirectory($tourBasePath)) {
+                            foreach (\Illuminate\Support\Facades\File::directories($tourBasePath) as $dir) {
+                                $dirName = basename($dir);
+                                $hasIndex = \Illuminate\Support\Facades\File::exists($dir . '/index.htm') || \Illuminate\Support\Facades\File::exists($dir . '/index.html');
+                                $fileCount = count(\Illuminate\Support\Facades\File::allFiles($dir));
+                                $deployedTours[] = [
+                                    'name' => ucfirst(str_replace(['-', '_'], ' ', $dirName)),
+                                    'slug' => $dirName,
+                                    'has_index' => $hasIndex,
+                                    'file_count' => $fileCount,
+                                ];
+                            }
+                        }
+                    @endphp
+
+                    @if(count($deployedTours) > 0)
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        @foreach($deployedTours as $tour)
+                        <div class="bg-white p-3 rounded-lg border flex items-center justify-between">
+                            <div>
+                                <span class="font-medium text-gray-800">{{ $tour['name'] }}</span>
+                                <span class="text-xs text-gray-500 ml-2">({{ $tour['file_count'] }} files)</span>
+                            </div>
+                            <div>
+                                @if($tour['has_index'])
+                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                        <i class="fas fa-check-circle mr-1"></i>Aktif
+                                    </span>
+                                @else
+                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Missing index
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center text-yellow-800 text-sm mb-3">
+                        <i class="fas fa-inbox mr-1"></i> Belum ada tour 3DVista yang di-deploy.
+                    </div>
+                    @endif
+
+                    <details class="text-sm">
+                        <summary class="cursor-pointer text-indigo-600 hover:text-indigo-800 font-medium">
+                            <i class="fas fa-question-circle mr-1"></i>Cara Menambah Tour Baru
+                        </summary>
+                        <div class="mt-2 bg-white p-3 rounded-lg text-gray-700 space-y-1">
+                            <p>1. Extract file ZIP tour dari client</p>
+                            <p>2. Buat subfolder baru di <code class="bg-gray-100 px-1 rounded text-xs">public/virtual-tours/nama-lokasi/</code></p>
+                            <p>3. Copy semua file hasil extract ke subfolder tersebut</p>
+                            <p>4. Pastikan ada file <code class="bg-gray-100 px-1 rounded text-xs">index.htm</code> di dalamnya</p>
+                            <p>5. Tour akan otomatis terdeteksi dan tampil di halaman Virtual Tour</p>
+                        </div>
+                    </details>
+                </div>
+
                 <!-- VR Scenes Management -->
                 <div class="bg-gray-50 p-4 rounded-lg mb-6">
                     <h3 class="text-lg font-semibold mb-3">Kelola Scene VR</h3>
