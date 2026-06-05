@@ -53,4 +53,7 @@ Route::middleware(AdminAuth::class)->prefix('admin')->group(function () {
 
     Route::post('/upload', [AdminController::class, 'uploadImage'])->name('admin.upload');
     Route::post('/image/delete', [AdminController::class, 'deleteImage'])->name('admin.image.delete');
+
+    Route::post('/tour/upload', [AdminController::class, 'uploadTourZip'])->name('admin.tour.upload');
+    Route::post('/tour/delete', [AdminController::class, 'deleteTour'])->name('admin.tour.delete');
 });

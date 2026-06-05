@@ -419,16 +419,36 @@
             <div x-show="activeTab === 'virtual-tour'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola Virtual Tour</h2>
 
-                <!-- 3DVista Tours Info -->
+                <!-- 3DVista Tours Management -->
                 <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-200">
                     <h3 class="text-lg font-semibold mb-3 text-indigo-800">
                         <i class="fas fa-street-view mr-2"></i>Tour Virtual 3DVista (Embed)
                     </h3>
-                    <p class="text-sm text-indigo-700 mb-3">
-                        Tour 3DVista dikelola sebagai file statis di folder <code class="bg-white px-2 py-0.5 rounded text-xs">public/virtual-tours/</code>.
-                        Untuk menambah tour baru, extract file ZIP dari client ke subfolder baru di folder tersebut.
-                    </p>
 
+                    <!-- Upload ZIP Form -->
+                    <div class="bg-white p-4 rounded-lg mb-4 border">
+                        <h4 class="font-medium mb-3 text-gray-800"><i class="fas fa-upload mr-2 text-indigo-600"></i>Upload Tour Baru (File ZIP)</h4>
+                        <form action="{{ route('admin.tour.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lokasi Tour</label>
+                                    <input type="text" name="tour_name" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Contoh: Musolah, Parkiran, Gedung A">
+                                    <p class="text-xs text-gray-500 mt-1">Nama akan dijadikan slug untuk URL (spasi → strip)</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">File ZIP Virtual Tour</label>
+                                    <input type="file" name="tour_zip" accept=".zip" required class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <p class="text-xs text-gray-500 mt-1">Maks 100MB. File ZIP harus mengandung index.htm hasil export 3DVista.</p>
+                                </div>
+                            </div>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition-colors">
+                                <i class="fas fa-cloud-upload-alt mr-1"></i>Upload & Extract Tour
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Deployed Tours List -->
                     @php
                         $deployedTours = [];
                         $tourBasePath = public_path('virtual-tours');
@@ -437,56 +457,58 @@
                                 $dirName = basename($dir);
                                 $hasIndex = \Illuminate\Support\Facades\File::exists($dir . '/index.htm') || \Illuminate\Support\Facades\File::exists($dir . '/index.html');
                                 $fileCount = count(\Illuminate\Support\Facades\File::allFiles($dir));
+                                $sizeBytes = 0;
+                                foreach (\Illuminate\Support\Facades\File::allFiles($dir) as $file) {
+                                    $sizeBytes += $file->getSize();
+                                }
                                 $deployedTours[] = [
                                     'name' => ucfirst(str_replace(['-', '_'], ' ', $dirName)),
                                     'slug' => $dirName,
                                     'has_index' => $hasIndex,
                                     'file_count' => $fileCount,
+                                    'size_mb' => round($sizeBytes / 1024 / 1024, 1),
                                 ];
                             }
                         }
                     @endphp
 
+                    <h4 class="font-medium mb-2 text-gray-800"><i class="fas fa-list mr-2 text-indigo-600"></i>Tour yang Ter-deploy</h4>
                     @if(count($deployedTours) > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         @foreach($deployedTours as $tour)
                         <div class="bg-white p-3 rounded-lg border flex items-center justify-between">
                             <div>
                                 <span class="font-medium text-gray-800">{{ $tour['name'] }}</span>
-                                <span class="text-xs text-gray-500 ml-2">({{ $tour['file_count'] }} files)</span>
+                                <div class="text-xs text-gray-500 mt-0.5">
+                                    {{ $tour['file_count'] }} files &bull; {{ $tour['size_mb'] }} MB
+                                </div>
                             </div>
-                            <div>
+                            <div class="flex items-center space-x-2">
                                 @if($tour['has_index'])
                                     <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
                                         <i class="fas fa-check-circle mr-1"></i>Aktif
                                     </span>
                                 @else
                                     <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
-                                        <i class="fas fa-exclamation-circle mr-1"></i>Missing index
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Error
                                     </span>
                                 @endif
+                                <form action="{{ route('admin.tour.delete') }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tour {{ $tour['name'] }}? Semua file tour akan dihapus permanen.')">
+                                    @csrf
+                                    <input type="hidden" name="tour_slug" value="{{ $tour['slug'] }}">
+                                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                         @endforeach
                     </div>
                     @else
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center text-yellow-800 text-sm mb-3">
-                        <i class="fas fa-inbox mr-1"></i> Belum ada tour 3DVista yang di-deploy.
+                        <i class="fas fa-inbox mr-1"></i> Belum ada tour yang di-deploy. Upload file ZIP di atas untuk memulai.
                     </div>
                     @endif
-
-                    <details class="text-sm">
-                        <summary class="cursor-pointer text-indigo-600 hover:text-indigo-800 font-medium">
-                            <i class="fas fa-question-circle mr-1"></i>Cara Menambah Tour Baru
-                        </summary>
-                        <div class="mt-2 bg-white p-3 rounded-lg text-gray-700 space-y-1">
-                            <p>1. Extract file ZIP tour dari client</p>
-                            <p>2. Buat subfolder baru di <code class="bg-gray-100 px-1 rounded text-xs">public/virtual-tours/nama-lokasi/</code></p>
-                            <p>3. Copy semua file hasil extract ke subfolder tersebut</p>
-                            <p>4. Pastikan ada file <code class="bg-gray-100 px-1 rounded text-xs">index.htm</code> di dalamnya</p>
-                            <p>5. Tour akan otomatis terdeteksi dan tampil di halaman Virtual Tour</p>
-                        </div>
-                    </details>
                 </div>
 
                 <!-- VR Scenes Management -->

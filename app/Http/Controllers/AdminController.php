@@ -212,4 +212,113 @@ class AdminController extends Controller
 
         return redirect()->route('admin.dashboard', ['tab' => 'upload'])->with('error', 'File tidak ditemukan atau tidak diizinkan.');
     }
+
+    public function uploadTourZip(Request $request)
+    {
+        $request->validate([
+            'tour_zip' => 'required|file|mimes:zip|max:102400', // max 100MB
+            'tour_name' => 'required|string|max:100',
+        ]);
+
+        $tourSlug = \Illuminate\Support\Str::slug($request->tour_name);
+
+        if (empty($tourSlug)) {
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Nama tour tidak valid.');
+        }
+
+        $tourDir = public_path('virtual-tours/' . $tourSlug);
+
+        // Check if tour already exists
+        if (File::isDirectory($tourDir)) {
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Tour dengan nama "' . $request->tour_name . '" sudah ada. Hapus terlebih dahulu jika ingin mengganti.');
+        }
+
+        $zipFile = $request->file('tour_zip');
+        $tempPath = $zipFile->getPathname();
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tempPath) !== true) {
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'File ZIP tidak valid atau rusak.');
+        }
+
+        // Check if ZIP contains index.htm or index.html (at root or in a subfolder)
+        $hasIndex = false;
+        $rootPrefix = '';
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            $basename = basename($name);
+            if (strtolower($basename) === 'index.htm' || strtolower($basename) === 'index.html') {
+                $hasIndex = true;
+                // Detect if files are inside a subfolder (e.g., "Musolah/index.htm")
+                $dir = dirname($name);
+                if ($dir !== '.' && substr_count($name, '/') === 1) {
+                    $rootPrefix = $dir . '/';
+                }
+                break;
+            }
+        }
+
+        if (!$hasIndex) {
+            $zip->close();
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'File ZIP tidak mengandung index.htm atau index.html. Pastikan file ini adalah hasil export virtual tour.');
+        }
+
+        // Create tour directory
+        File::makeDirectory($tourDir, 0755, true, true);
+
+        // Extract files
+        if (!empty($rootPrefix)) {
+            // Files are inside a subfolder in the ZIP, extract only that subfolder's contents
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (strpos($name, $rootPrefix) === 0) {
+                    $relativePath = substr($name, strlen($rootPrefix));
+                    if (empty($relativePath)) continue;
+
+                    $targetPath = $tourDir . '/' . $relativePath;
+
+                    // If it's a directory entry
+                    if (substr($name, -1) === '/') {
+                        File::makeDirectory($targetPath, 0755, true, true);
+                    } else {
+                        // Ensure parent directory exists
+                        $parentDir = dirname($targetPath);
+                        if (!File::isDirectory($parentDir)) {
+                            File::makeDirectory($parentDir, 0755, true, true);
+                        }
+                        file_put_contents($targetPath, $zip->getFromIndex($i));
+                    }
+                }
+            }
+        } else {
+            // Files are at the root of the ZIP, extract directly
+            $zip->extractTo($tourDir);
+        }
+
+        $zip->close();
+
+        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Tour "' . $request->tour_name . '" berhasil diupload dan di-extract!');
+    }
+
+    public function deleteTour(Request $request)
+    {
+        $request->validate(['tour_slug' => 'required|string|max:100']);
+
+        $tourSlug = $request->tour_slug;
+
+        // Security: only allow simple slug names (no path traversal)
+        if ($tourSlug !== basename($tourSlug) || str_contains($tourSlug, '..')) {
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Nama tour tidak valid.');
+        }
+
+        $tourDir = public_path('virtual-tours/' . $tourSlug);
+
+        if (!File::isDirectory($tourDir)) {
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Tour tidak ditemukan.');
+        }
+
+        File::deleteDirectory($tourDir);
+
+        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Tour "' . ucfirst($tourSlug) . '" berhasil dihapus.');
+    }
 }
