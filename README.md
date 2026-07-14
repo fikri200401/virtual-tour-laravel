@@ -41,8 +41,8 @@
 
 ### 👥 Fitur Publik
 - **🏠 Halaman Beranda** — Informasi umum dan sambutan kampus
-- **🔭 Virtual Tour 360°** — Jelajahi kampus secara interaktif dengan hotspot navigasi
-- **🏛️ Fasilitas** — Galeri dan informasi fasilitas kampus
+- **🔭 Virtual Tour 360°** — Jelajahi hasil export virtual tour dan panorama gambar secara interaktif
+- **🏛️ Fasilitas** — Galeri fasilitas dengan virtual tour 360° khusus per fasilitas
 - **ℹ️ Tentang** — Profil dan sejarah universitas
 - **📩 Kritik & Saran** — Form pengiriman masukan dari pengunjung
 - **📊 Tracking Pengunjung** — Statistik kunjungan otomatis
@@ -50,9 +50,8 @@
 ### 🔐 Fitur Admin
 - **Dashboard** — Statistik pengunjung dan ringkasan data
 - **Manajemen Konten** — Update konten halaman secara dinamis
-- **Manajemen Fasilitas** — Tambah, edit, hapus data fasilitas
-- **Manajemen Scene VR** — Kelola scene panorama 360° (tambah/edit/hapus)
-- **Manajemen Hotspot** — Tambah dan hapus titik navigasi antar scene
+- **Manajemen Fasilitas** — Tambah, edit, hapus data serta virtual tour khusus per fasilitas
+- **Manajemen Virtual Tour** — Upload dan hapus tour umum dalam format ZIP, RAR, PNG, JPG, atau JPEG
 - **Manajemen Pengguna** — Kelola akun admin
 - **Upload Gambar** — Upload dan kelola aset gambar
 - **Kritik & Saran** — Lihat dan hapus masukan dari pengunjung

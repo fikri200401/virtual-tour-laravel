@@ -1,15 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\VirtualTourController;
-use App\Http\Controllers\FasilitasController;
-use App\Http\Controllers\TentangController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FasilitasController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KritikSaranController;
+use App\Http\Controllers\TentangController;
+use App\Http\Controllers\VirtualTourController;
 use App\Http\Middleware\AdminAuth;
 use App\Http\Middleware\TrackVisitor;
+use Illuminate\Support\Facades\Route;
 
 // Public routes with visitor tracking
 Route::middleware(TrackVisitor::class)->group(function () {
@@ -36,17 +36,12 @@ Route::middleware(AdminAuth::class)->prefix('admin')->group(function () {
     Route::post('/facility/add', [AdminController::class, 'addFacility'])->name('admin.facility.add');
     Route::post('/facility/update', [AdminController::class, 'updateFacility'])->name('admin.facility.update');
     Route::post('/facility/delete', [AdminController::class, 'deleteFacility'])->name('admin.facility.delete');
+    Route::post('/facility/tour/upload', [AdminController::class, 'uploadFacilityTour'])->name('admin.facility.tour.upload');
+    Route::post('/facility/tour/delete', [AdminController::class, 'deleteFacilityTour'])->name('admin.facility.tour.delete');
 
     Route::post('/user/add', [AdminController::class, 'addUser'])->name('admin.user.add');
     Route::post('/user/update', [AdminController::class, 'updateUser'])->name('admin.user.update');
     Route::post('/user/delete', [AdminController::class, 'deleteUser'])->name('admin.user.delete');
-
-    Route::post('/scene/add', [AdminController::class, 'addScene'])->name('admin.scene.add');
-    Route::post('/scene/update', [AdminController::class, 'updateScene'])->name('admin.scene.update');
-    Route::post('/scene/delete', [AdminController::class, 'deleteScene'])->name('admin.scene.delete');
-
-    Route::post('/hotspot/add', [AdminController::class, 'addHotspot'])->name('admin.hotspot.add');
-    Route::post('/hotspot/delete', [AdminController::class, 'deleteHotspot'])->name('admin.hotspot.delete');
 
     Route::post('/kritik-saran/delete', [AdminController::class, 'deleteKritikSaran'])->name('admin.kritik.delete');
     Route::post('/kritik-saran/telegram', [AdminController::class, 'updateTelegramSettings'])->name('admin.kritik.telegram.update');
@@ -54,6 +49,6 @@ Route::middleware(AdminAuth::class)->prefix('admin')->group(function () {
     Route::post('/upload', [AdminController::class, 'uploadImage'])->name('admin.upload');
     Route::post('/image/delete', [AdminController::class, 'deleteImage'])->name('admin.image.delete');
 
-    Route::post('/tour/upload', [AdminController::class, 'uploadTourZip'])->name('admin.tour.upload');
+    Route::post('/tour/upload', [AdminController::class, 'uploadTour'])->name('admin.tour.upload');
     Route::post('/tour/delete', [AdminController::class, 'deleteTour'])->name('admin.tour.delete');
 });

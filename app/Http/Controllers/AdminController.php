@@ -2,26 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Admin;
 use App\Models\Content;
 use App\Models\Facility;
-use App\Models\Admin;
-use App\Models\VrScene;
-use App\Models\VrHotspot;
 use App\Models\KritikSaran;
 use App\Models\VisitorStat;
-use Illuminate\Support\Facades\Hash;
+use App\Services\VirtualTourUploadService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
 
 class AdminController extends Controller
 {
     public function dashboard(Request $request)
     {
-        $contents = Content::orderBy('section')->orderBy('content_key')->get();
+        $contents = Content::whereNotIn('content_key', ['telegram_bot_token', 'telegram_chat_id'])
+            ->orderBy('section')
+            ->orderBy('content_key')
+            ->get();
         $facilities = Facility::orderByDesc('created_at')->get();
         $users = Admin::orderByDesc('id')->get();
-        $vrScenes = VrScene::orderBy('id')->get();
-        $vrHotspots = VrHotspot::with('scene')->orderBy('scene_id')->orderBy('id')->get();
         $kritikSaran = KritikSaran::orderByDesc('created_at')->get();
         $telegramSettingsFromDb = Content::whereIn('content_key', ['telegram_bot_token', 'telegram_chat_id'])
             ->pluck('content_value', 'content_key');
@@ -48,14 +51,14 @@ class AdminController extends Controller
         $images = [];
         $assetPath = public_path('asset');
         if (File::isDirectory($assetPath)) {
-            $files = File::glob($assetPath . '/*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE);
+            $files = File::glob($assetPath.'/*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE);
             foreach ($files as $file) {
-                $images[] = 'asset/' . basename($file);
+                $images[] = 'asset/'.basename($file);
             }
         }
 
         return view('admin.dashboard', compact(
-            'contents', 'facilities', 'users', 'vrScenes', 'vrHotspots',
+            'contents', 'facilities', 'users',
             'kritikSaran', 'stats', 'recentVisitors', 'images', 'telegramSettings'
         ));
     }
@@ -64,6 +67,7 @@ class AdminController extends Controller
     {
         $request->validate(['content_id' => 'required|integer', 'content_value' => 'required|string']);
         Content::where('id', $request->content_id)->update(['content_value' => $request->content_value]);
+
         return redirect()->route('admin.dashboard', ['tab' => 'content'])->with('success', 'Konten berhasil diupdate!');
     }
 
@@ -71,6 +75,7 @@ class AdminController extends Controller
     {
         $request->validate(['name' => 'required|string', 'description' => 'required|string', 'image' => 'required|string']);
         Facility::create($request->only('name', 'description', 'image'));
+
         return redirect()->route('admin.dashboard', ['tab' => 'facilities'])->with('success', 'Fasilitas berhasil ditambahkan!');
     }
 
@@ -78,20 +83,96 @@ class AdminController extends Controller
     {
         $request->validate(['facility_id' => 'required|integer', 'name' => 'required|string', 'description' => 'required|string', 'image' => 'required|string']);
         Facility::where('id', $request->facility_id)->update($request->only('name', 'description', 'image'));
+
         return redirect()->route('admin.dashboard', ['tab' => 'facilities'])->with('success', 'Fasilitas berhasil diupdate!');
     }
 
     public function deleteFacility(Request $request)
     {
-        $request->validate(['facility_id' => 'required|integer']);
-        Facility::where('id', $request->facility_id)->delete();
+        $request->validate(['facility_id' => 'required|integer|exists:tb_facilities,id']);
+
+        $facility = Facility::findOrFail($request->facility_id);
+        $tourSlug = $facility->virtual_tour_slug;
+        $facility->delete();
+        $this->removeFacilityTourDirectory($tourSlug);
+
         return redirect()->route('admin.dashboard', ['tab' => 'facilities'])->with('success', 'Fasilitas berhasil dihapus!');
+    }
+
+    public function uploadFacilityTour(Request $request, VirtualTourUploadService $tourUploader)
+    {
+        $request->validate([
+            'facility_id' => 'required|integer|exists:tb_facilities,id',
+            'tour_file' => 'required|file|max:40960', // max 40MB (current PHP upload limit)
+        ]);
+
+        $facility = Facility::findOrFail($request->facility_id);
+        $tourFile = $request->file('tour_file');
+        $extension = strtolower($tourFile->getClientOriginalExtension());
+
+        if (! in_array($extension, ['zip', 'rar', 'png', 'jpg', 'jpeg'], true)) {
+            return redirect()->route('admin.dashboard', ['tab' => 'facilities'])
+                ->with('error', 'Format virtual tour fasilitas harus ZIP, RAR, PNG, JPG, atau JPEG.');
+        }
+
+        $nameSlug = Str::slug($facility->name) ?: 'tour';
+        $tourSlug = sprintf('facility-%d-%s-%s', $facility->id, $nameSlug, Str::lower(Str::random(8)));
+        $tourDir = public_path('facility-tours/'.$tourSlug);
+        $oldTourSlug = $facility->virtual_tour_slug;
+
+        try {
+            $uploadType = $tourUploader->deploy($tourFile, $tourDir, $facility->name);
+
+            try {
+                $facility->update(['virtual_tour_slug' => $tourSlug]);
+            } catch (Throwable $exception) {
+                $this->removeFacilityTourDirectory($tourSlug);
+
+                throw $exception;
+            }
+
+            $this->removeFacilityTourDirectory($oldTourSlug);
+        } catch (RuntimeException $exception) {
+            return redirect()->route('admin.dashboard', ['tab' => 'facilities'])
+                ->with('error', $exception->getMessage());
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('admin.dashboard', ['tab' => 'facilities'])
+                ->with('error', 'Virtual tour fasilitas gagal diproses. Periksa file lalu coba kembali.');
+        }
+
+        $message = $uploadType === 'image'
+            ? 'Gambar panorama untuk fasilitas "'.$facility->name.'" berhasil dibuat menjadi virtual tour!'
+            : 'Arsip virtual tour untuk fasilitas "'.$facility->name.'" berhasil diupload dan diekstrak!';
+
+        return redirect()->route('admin.dashboard', ['tab' => 'facilities'])->with('success', $message);
+    }
+
+    public function deleteFacilityTour(Request $request)
+    {
+        $request->validate(['facility_id' => 'required|integer|exists:tb_facilities,id']);
+
+        $facility = Facility::findOrFail($request->facility_id);
+        $tourSlug = $facility->virtual_tour_slug;
+
+        if (! $tourSlug) {
+            return redirect()->route('admin.dashboard', ['tab' => 'facilities'])
+                ->with('error', 'Fasilitas ini belum memiliki virtual tour.');
+        }
+
+        $facility->update(['virtual_tour_slug' => null]);
+        $this->removeFacilityTourDirectory($tourSlug);
+
+        return redirect()->route('admin.dashboard', ['tab' => 'facilities'])
+            ->with('success', 'Virtual tour fasilitas "'.$facility->name.'" berhasil dihapus.');
     }
 
     public function addUser(Request $request)
     {
         $request->validate(['username' => 'required|string|max:50', 'password' => 'required|string|min:4']);
         Admin::create(['username' => $request->username, 'password' => Hash::make($request->password)]);
+
         return redirect()->route('admin.dashboard', ['tab' => 'users'])->with('success', 'User berhasil ditambahkan!');
     }
 
@@ -103,6 +184,7 @@ class AdminController extends Controller
             $data['password'] = Hash::make($request->password);
         }
         Admin::where('id', $request->user_id)->update($data);
+
         return redirect()->route('admin.dashboard', ['tab' => 'users'])->with('success', 'User berhasil diupdate!');
     }
 
@@ -113,49 +195,15 @@ class AdminController extends Controller
             return redirect()->route('admin.dashboard', ['tab' => 'users'])->with('error', 'Tidak dapat menghapus akun yang sedang digunakan!');
         }
         Admin::where('id', $request->user_id)->delete();
+
         return redirect()->route('admin.dashboard', ['tab' => 'users'])->with('success', 'User berhasil dihapus!');
-    }
-
-    public function addScene(Request $request)
-    {
-        $request->validate(['name' => 'required|string', 'scene_key' => 'required|string', 'image_360' => 'required|string', 'icon' => 'required|string', 'description' => 'required|string']);
-        VrScene::create($request->only('name', 'description', 'scene_key', 'image_360', 'icon'));
-        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Scene VR berhasil ditambahkan!');
-    }
-
-    public function updateScene(Request $request)
-    {
-        $request->validate(['scene_id' => 'required|integer', 'name' => 'required|string', 'scene_key' => 'required|string', 'image_360' => 'required|string', 'icon' => 'required|string', 'description' => 'required|string']);
-        VrScene::where('id', $request->scene_id)->update($request->only('name', 'description', 'scene_key', 'image_360', 'icon'));
-        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Scene VR berhasil diupdate!');
-    }
-
-    public function deleteScene(Request $request)
-    {
-        $request->validate(['scene_id' => 'required|integer']);
-        VrHotspot::where('scene_id', $request->scene_id)->delete();
-        VrScene::where('id', $request->scene_id)->delete();
-        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Scene VR berhasil dihapus!');
-    }
-
-    public function addHotspot(Request $request)
-    {
-        $request->validate(['scene_id' => 'required|integer', 'name' => 'required|string', 'target_scene' => 'required|string', 'position_x' => 'required|numeric', 'position_y' => 'required|numeric', 'position_z' => 'required|numeric']);
-        VrHotspot::create($request->only('scene_id', 'name', 'target_scene', 'position_x', 'position_y', 'position_z'));
-        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Hotspot berhasil ditambahkan!');
-    }
-
-    public function deleteHotspot(Request $request)
-    {
-        $request->validate(['hotspot_id' => 'required|integer']);
-        VrHotspot::where('id', $request->hotspot_id)->delete();
-        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Hotspot berhasil dihapus!');
     }
 
     public function deleteKritikSaran(Request $request)
     {
         $request->validate(['kritik_id' => 'required|integer']);
         KritikSaran::where('id', $request->kritik_id)->delete();
+
         return redirect()->route('admin.dashboard', ['tab' => 'kritik-saran'])->with('success', 'Kritik & Saran berhasil dihapus!');
     }
 
@@ -194,10 +242,10 @@ class AdminController extends Controller
         ]);
 
         $file = $request->file('image');
-        $uniqueName = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $uniqueName = uniqid().'_'.time().'.'.$file->getClientOriginalExtension();
         $file->move(public_path('asset'), $uniqueName);
 
-        return redirect()->route('admin.dashboard', ['tab' => 'upload'])->with('success', 'File berhasil diupload sebagai ' . $uniqueName);
+        return redirect()->route('admin.dashboard', ['tab' => 'upload'])->with('success', 'File berhasil diupload sebagai '.$uniqueName);
     }
 
     public function deleteImage(Request $request)
@@ -207,97 +255,57 @@ class AdminController extends Controller
 
         if (str_starts_with($imagePath, 'asset/') && File::exists(public_path($imagePath))) {
             File::delete(public_path($imagePath));
+
             return redirect()->route('admin.dashboard', ['tab' => 'upload'])->with('success', 'File berhasil dihapus.');
         }
 
         return redirect()->route('admin.dashboard', ['tab' => 'upload'])->with('error', 'File tidak ditemukan atau tidak diizinkan.');
     }
 
-    public function uploadTourZip(Request $request)
+    public function uploadTour(Request $request, VirtualTourUploadService $tourUploader)
     {
         $request->validate([
-            'tour_zip' => 'required|file|mimes:zip|max:102400', // max 100MB
+            'tour_file' => 'required|file|max:40960', // max 40MB (current PHP upload limit)
             'tour_name' => 'required|string|max:100',
         ]);
 
-        $tourSlug = \Illuminate\Support\Str::slug($request->tour_name);
+        $tourFile = $request->file('tour_file');
+        $extension = strtolower($tourFile->getClientOriginalExtension());
+        if (! in_array($extension, ['zip', 'rar', 'png', 'jpg', 'jpeg'], true)) {
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])
+                ->with('error', 'Format file harus ZIP, RAR, PNG, JPG, atau JPEG.');
+        }
+
+        $tourSlug = Str::slug($request->tour_name);
 
         if (empty($tourSlug)) {
             return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Nama tour tidak valid.');
         }
 
-        $tourDir = public_path('virtual-tours/' . $tourSlug);
+        $tourDir = public_path('virtual-tours/'.$tourSlug);
 
         // Check if tour already exists
         if (File::isDirectory($tourDir)) {
-            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Tour dengan nama "' . $request->tour_name . '" sudah ada. Hapus terlebih dahulu jika ingin mengganti.');
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Tour dengan nama "'.$request->tour_name.'" sudah ada. Hapus terlebih dahulu jika ingin mengganti.');
         }
 
-        $zipFile = $request->file('tour_zip');
-        $tempPath = $zipFile->getPathname();
+        try {
+            $uploadType = $tourUploader->deploy($tourFile, $tourDir, $request->tour_name);
+        } catch (RuntimeException $exception) {
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])
+                ->with('error', $exception->getMessage());
+        } catch (Throwable $exception) {
+            report($exception);
 
-        $zip = new \ZipArchive();
-        if ($zip->open($tempPath) !== true) {
-            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'File ZIP tidak valid atau rusak.');
+            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])
+                ->with('error', 'Tour gagal diproses. Periksa file lalu coba kembali.');
         }
 
-        // Check if ZIP contains index.htm or index.html (at root or in a subfolder)
-        $hasIndex = false;
-        $rootPrefix = '';
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            $basename = basename($name);
-            if (strtolower($basename) === 'index.htm' || strtolower($basename) === 'index.html') {
-                $hasIndex = true;
-                // Detect if files are inside a subfolder (e.g., "Musolah/index.htm")
-                $dir = dirname($name);
-                if ($dir !== '.' && substr_count($name, '/') === 1) {
-                    $rootPrefix = $dir . '/';
-                }
-                break;
-            }
-        }
+        $message = $uploadType === 'image'
+            ? 'Gambar panorama "'.$request->tour_name.'" berhasil dibuat menjadi virtual tour!'
+            : 'Arsip tour "'.$request->tour_name.'" berhasil diupload dan diekstrak!';
 
-        if (!$hasIndex) {
-            $zip->close();
-            return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'File ZIP tidak mengandung index.htm atau index.html. Pastikan file ini adalah hasil export virtual tour.');
-        }
-
-        // Create tour directory
-        File::makeDirectory($tourDir, 0755, true, true);
-
-        // Extract files
-        if (!empty($rootPrefix)) {
-            // Files are inside a subfolder in the ZIP, extract only that subfolder's contents
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $name = $zip->getNameIndex($i);
-                if (strpos($name, $rootPrefix) === 0) {
-                    $relativePath = substr($name, strlen($rootPrefix));
-                    if (empty($relativePath)) continue;
-
-                    $targetPath = $tourDir . '/' . $relativePath;
-
-                    // If it's a directory entry
-                    if (substr($name, -1) === '/') {
-                        File::makeDirectory($targetPath, 0755, true, true);
-                    } else {
-                        // Ensure parent directory exists
-                        $parentDir = dirname($targetPath);
-                        if (!File::isDirectory($parentDir)) {
-                            File::makeDirectory($parentDir, 0755, true, true);
-                        }
-                        file_put_contents($targetPath, $zip->getFromIndex($i));
-                    }
-                }
-            }
-        } else {
-            // Files are at the root of the ZIP, extract directly
-            $zip->extractTo($tourDir);
-        }
-
-        $zip->close();
-
-        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Tour "' . $request->tour_name . '" berhasil diupload dan di-extract!');
+        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', $message);
     }
 
     public function deleteTour(Request $request)
@@ -311,14 +319,31 @@ class AdminController extends Controller
             return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Nama tour tidak valid.');
         }
 
-        $tourDir = public_path('virtual-tours/' . $tourSlug);
+        $tourDir = public_path('virtual-tours/'.$tourSlug);
 
-        if (!File::isDirectory($tourDir)) {
+        if (! File::isDirectory($tourDir)) {
             return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('error', 'Tour tidak ditemukan.');
         }
 
         File::deleteDirectory($tourDir);
 
-        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Tour "' . ucfirst($tourSlug) . '" berhasil dihapus.');
+        return redirect()->route('admin.dashboard', ['tab' => 'virtual-tour'])->with('success', 'Tour "'.ucfirst($tourSlug).'" berhasil dihapus.');
+    }
+
+    private function removeFacilityTourDirectory(?string $tourSlug): void
+    {
+        if (
+            ! is_string($tourSlug)
+            || $tourSlug === ''
+            || $tourSlug !== basename($tourSlug)
+            || str_contains($tourSlug, '..')
+        ) {
+            return;
+        }
+
+        $tourDir = public_path('facility-tours/'.$tourSlug);
+        if (File::isDirectory($tourDir)) {
+            File::deleteDirectory($tourDir);
+        }
     }
 }

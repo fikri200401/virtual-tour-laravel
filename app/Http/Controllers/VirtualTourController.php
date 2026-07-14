@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Content;
-use App\Models\VrScene;
-use App\Models\VrHotspot;
 use Illuminate\Support\Facades\File;
 
 class VirtualTourController extends Controller
@@ -24,41 +22,34 @@ class VirtualTourController extends Controller
         ];
 
         foreach ($default_content as $key => $value) {
-            if (!isset($content[$key]) || empty($content[$key])) {
+            if (! isset($content[$key]) || empty($content[$key])) {
                 $content[$key] = $value;
             }
         }
 
-        $scenes = VrScene::orderBy('id')->get();
-        $hotspotsRaw = VrHotspot::orderBy('scene_id')->orderBy('id')->get();
-        $hotspots = [];
-        foreach ($hotspotsRaw as $h) {
-            $hotspots[$h->scene_id][] = $h;
-        }
-
-        // Scan for 3DVista virtual tours in public/virtual-tours/
+        // Scan virtual tours deployed in public/virtual-tours/.
         $virtualTours = [];
         $tourPath = public_path('virtual-tours');
         if (File::isDirectory($tourPath)) {
             $directories = File::directories($tourPath);
             foreach ($directories as $dir) {
                 $dirName = basename($dir);
-                $indexFile = $dir . DIRECTORY_SEPARATOR . 'index.htm';
-                if (!File::exists($indexFile)) {
-                    $indexFile = $dir . DIRECTORY_SEPARATOR . 'index.html';
+                $indexFile = $dir.DIRECTORY_SEPARATOR.'index.htm';
+                if (! File::exists($indexFile)) {
+                    $indexFile = $dir.DIRECTORY_SEPARATOR.'index.html';
                 }
                 if (File::exists($indexFile)) {
                     $virtualTours[] = [
                         'slug' => $dirName,
                         'name' => ucfirst(str_replace(['-', '_'], ' ', $dirName)),
-                        'url' => asset('virtual-tours/' . $dirName . '/' . basename($indexFile)),
+                        'url' => asset('virtual-tours/'.$dirName.'/'.basename($indexFile)),
                         'icon' => $this->getTourIcon($dirName),
                     ];
                 }
             }
         }
 
-        return view('virtual_tour', compact('content', 'scenes', 'hotspots', 'virtualTours'));
+        return view('virtual_tour', compact('content', 'virtualTours'));
     }
 
     /**
@@ -89,4 +80,3 @@ class VirtualTourController extends Controller
         return 'fas fa-street-view';
     }
 }
-

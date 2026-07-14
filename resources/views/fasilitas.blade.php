@@ -1,30 +1,310 @@
 @extends('layouts.app')
 
+@section('title', 'Fasilitas & Virtual Tour - Universitas Pamulang')
+
 @section('content')
-    <!-- Facilities Section -->
-    <section id="facilities" class="py-20 bg-gray-100" style="padding-top: 120px;">
+    @php
+        $tourFacilities = $facilities
+            ->filter(fn ($facility) => filled($facility->virtual_tour_url))
+            ->values();
+        $firstTourFacility = $tourFacilities->first();
+    @endphp
+
+    @push('styles')
+        <style>
+            [x-cloak] { display: none !important; }
+
+            .facility-tour-card {
+                position: relative;
+                min-height: 250px;
+                overflow: hidden;
+                border: 2px solid transparent;
+                border-radius: 1rem;
+                background: #0f172a;
+                box-shadow: 0 12px 28px rgba(15, 23, 42, .14);
+                color: #fff;
+                text-align: left;
+                transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+            }
+
+            .facility-tour-card:not(:disabled):hover {
+                transform: translateY(-6px);
+                border-color: rgba(96, 165, 250, .8);
+                box-shadow: 0 22px 42px rgba(15, 23, 42, .25);
+            }
+
+            .facility-tour-card.active {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, .18), 0 22px 42px rgba(15, 23, 42, .25);
+            }
+
+            .facility-tour-card:disabled {
+                cursor: not-allowed;
+                filter: grayscale(.35);
+            }
+
+            .facility-tour-card img {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform .5s ease;
+            }
+
+            .facility-tour-card:not(:disabled):hover img {
+                transform: scale(1.06);
+            }
+
+            .facility-tour-card::after {
+                position: absolute;
+                inset: 0;
+                content: '';
+                background: linear-gradient(180deg, rgba(15, 23, 42, .12) 10%, rgba(15, 23, 42, .94) 100%);
+            }
+
+            .facility-tour-card:disabled::after {
+                background: linear-gradient(180deg, rgba(15, 23, 42, .38) 10%, rgba(15, 23, 42, .96) 100%);
+            }
+
+            .facility-tour-content {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                min-height: 250px;
+                flex-direction: column;
+                justify-content: flex-end;
+                padding: 1.5rem;
+            }
+
+            .facility-tour-viewer {
+                position: relative;
+                width: 100%;
+                height: 0;
+                overflow: hidden;
+                padding-bottom: 56.25%;
+                border-radius: 1rem;
+                background: #0f172a;
+                box-shadow: 0 25px 50px rgba(15, 23, 42, .24);
+            }
+
+            .facility-tour-viewer iframe {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+            }
+
+            .facility-tour-viewer.fullscreen {
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                width: 100vw;
+                height: 100vh;
+                padding-bottom: 0;
+                border-radius: 0;
+            }
+
+            .facility-tour-loading {
+                position: absolute;
+                inset: 0;
+                z-index: 5;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                color: #cbd5e1;
+                transition: opacity .35s ease;
+            }
+
+            .facility-tour-loading.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .facility-tour-spinner {
+                width: 48px;
+                height: 48px;
+                border: 4px solid rgba(96, 165, 250, .2);
+                border-top-color: #60a5fa;
+                border-radius: 50%;
+                animation: facility-spin 1s linear infinite;
+            }
+
+            @keyframes facility-spin {
+                to { transform: rotate(360deg); }
+            }
+
+            .facility-fullscreen-button {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                z-index: 10;
+                padding: .65rem 1rem;
+                border: 1px solid rgba(255, 255, 255, .15);
+                border-radius: .6rem;
+                background: rgba(15, 23, 42, .78);
+                color: #fff;
+                backdrop-filter: blur(8px);
+                transition: background .25s ease;
+            }
+
+            .facility-fullscreen-button:hover {
+                background: rgba(37, 99, 235, .88);
+            }
+        </style>
+    @endpush
+
+    <section
+        id="facilities"
+        class="min-h-screen bg-gradient-to-b from-gray-100 to-white pb-20"
+        style="padding-top: 130px;"
+        x-data="facilityTourApp()">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl font-bold text-center mb-6">FASILITAS UNPAM VIKTOR</h2>
-            <p class="text-center text-gray-700 mb-16 max-w-2xl mx-auto">Temukan berbagai fasilitas modern yang mendukung proses belajar mengajar di Program Studi Sistem Informasi</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="mx-auto mb-12 max-w-3xl text-center">
+                <span class="mb-3 inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
+                    <i class="fas fa-vr-cardboard mr-2"></i>Virtual Tour Khusus Fasilitas
+                </span>
+                <h2 class="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">FASILITAS UNPAM VIKTOR</h2>
+                <p class="text-lg leading-relaxed text-gray-600">
+                    Pilih fasilitas untuk melihat informasi dan menjelajahi ruangannya melalui virtual tour 360&deg;.
+                </p>
+            </div>
+
+            <div class="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
                 @forelse($facilities as $facility)
-                    <div class="facility-card bg-white rounded-lg overflow-hidden shadow-md transition duration-300">
-                        <div class="h-48 overflow-hidden">
-                            <img src="{{ asset($facility->image ?? 'asset/default.jpg') }}" alt="{{ e($facility->name) }}" class="w-full h-full object-cover">
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-semibold mb-2">{{ e($facility->name) }}</h3>
-                            <p class="text-gray-600">{{ e($facility->description) }}</p>
-                        </div>
-                    </div>
+                    @php($tourUrl = $facility->virtual_tour_url)
+                    <button
+                        type="button"
+                        class="facility-tour-card w-full"
+                        @if($tourUrl)
+                            :class="{ 'active': activeFacility === {{ $facility->id }} }"
+                            :aria-pressed="activeFacility === {{ $facility->id }}"
+                            @click="loadTour({{ $facility->id }}, @js($tourUrl), @js($facility->name))"
+                        @else
+                            disabled
+                            aria-disabled="true"
+                        @endif>
+                        <img src="{{ asset($facility->image ?? 'asset/default.jpg') }}" alt="{{ $facility->name }}">
+                        <span class="facility-tour-content">
+                            <span class="mb-3 inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold {{ $tourUrl ? 'bg-blue-500/90 text-white' : 'bg-gray-700/90 text-gray-200' }}">
+                                <i class="fas {{ $tourUrl ? 'fa-play-circle' : 'fa-clock' }} mr-2"></i>
+                                {{ $tourUrl ? 'Buka Virtual Tour' : 'Tour belum tersedia' }}
+                            </span>
+                            <span class="mb-2 text-2xl font-bold">{{ $facility->name }}</span>
+                            <span class="leading-relaxed text-slate-200">{{ $facility->description }}</span>
+                        </span>
+                    </button>
                 @empty
-                    <div class="col-span-full bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center text-yellow-700">
+                    <div class="col-span-full rounded-xl border border-yellow-200 bg-yellow-50 p-6 text-center text-yellow-700">
                         Belum ada data fasilitas. Tambahkan fasilitas dari dashboard admin.
                     </div>
                 @endforelse
             </div>
+
+            @if($firstTourFacility)
+                <div class="mx-auto mt-12 max-w-6xl" x-cloak>
+                    <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p class="text-sm font-semibold uppercase tracking-wider text-blue-600">Virtual Tour Fasilitas</p>
+                            <h3 class="text-2xl font-bold text-gray-900" x-text="activeFacilityName"></h3>
+                        </div>
+                        <p class="text-sm text-gray-500">Klik dan geser tampilan untuk melihat ke segala arah.</p>
+                    </div>
+
+                    <div class="facility-tour-viewer" :class="{ 'fullscreen': isFullscreen }">
+                        <div class="facility-tour-loading" :class="{ 'hidden': !isLoading }">
+                            <div class="text-center">
+                                <div class="facility-tour-spinner mx-auto mb-4"></div>
+                                <p class="text-sm">Memuat virtual tour fasilitas...</p>
+                            </div>
+                        </div>
+
+                        <iframe
+                            :src="currentTourUrl"
+                            :title="'Virtual Tour ' + activeFacilityName"
+                            allowfullscreen
+                            allow="gyroscope; accelerometer; xr-spatial-tracking"
+                            @load="onIframeLoaded()">
+                        </iframe>
+
+                        <button type="button" class="facility-fullscreen-button" @click="toggleFullscreen()">
+                            <i :class="isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
+                            <span class="ml-1" x-text="isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen'"></span>
+                        </button>
+                    </div>
+
+                    <div class="mt-8 rounded-xl border border-blue-100 bg-blue-50 p-6">
+                        <h4 class="mb-3 font-semibold text-gray-900">
+                            <i class="fas fa-info-circle mr-2 text-blue-600"></i>Cara Menggunakan Virtual Tour Fasilitas
+                        </h4>
+                        <div class="grid gap-3 text-sm text-gray-700 md:grid-cols-3">
+                            <p><i class="fas fa-hand-pointer mr-2 text-blue-600"></i>Pilih kartu fasilitas di atas.</p>
+                            <p><i class="fas fa-mouse-pointer mr-2 text-blue-600"></i>Klik dan geser panorama 360&deg;.</p>
+                            <p><i class="fas fa-expand mr-2 text-blue-600"></i>Gunakan fullscreen untuk tampilan terbaik.</p>
+                        </div>
+                    </div>
+                </div>
+            @elseif($facilities->isNotEmpty())
+                <div class="mx-auto mt-10 max-w-3xl rounded-xl border border-blue-200 bg-blue-50 p-6 text-center text-blue-700">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Virtual tour fasilitas belum tersedia. Admin dapat mengunggah tour secara terpisah pada menu Fasilitas.
+                </div>
+            @endif
         </div>
     </section>
 
     @include('partials.contact')
+
+    @push('scripts')
+        <script>
+            function facilityTourApp() {
+                return {
+                    activeFacility: null,
+                    activeFacilityName: '',
+                    currentTourUrl: '',
+                    isFullscreen: false,
+                    isLoading: false,
+
+                    loadTour(facilityId, url, name) {
+                        if (this.activeFacility === facilityId && this.currentTourUrl === url) return;
+
+                        this.activeFacility = facilityId;
+                        this.activeFacilityName = name;
+                        this.isLoading = true;
+                        this.currentTourUrl = url;
+                    },
+
+                    onIframeLoaded() {
+                        this.isLoading = false;
+                    },
+
+                    toggleFullscreen() {
+                        this.isFullscreen = !this.isFullscreen;
+                        document.body.style.overflow = this.isFullscreen ? 'hidden' : '';
+                    },
+
+                    init() {
+                        document.addEventListener('keydown', (event) => {
+                            if (event.key === 'Escape' && this.isFullscreen) {
+                                this.isFullscreen = false;
+                                document.body.style.overflow = '';
+                            }
+                        });
+
+                        @if($firstTourFacility)
+                            this.$nextTick(() => {
+                                this.loadTour(
+                                    {{ $firstTourFacility->id }},
+                                    @js($firstTourFacility->virtual_tour_url),
+                                    @js($firstTourFacility->name)
+                                );
+                            });
+                        @endif
+                    }
+                };
+            }
+        </script>
+    @endpush
 @endsection

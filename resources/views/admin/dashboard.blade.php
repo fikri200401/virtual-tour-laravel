@@ -9,9 +9,37 @@
     <title>Admin Dashboard - Virtual Tour UNPAM</title>
     <link rel="icon" type="image/png" href="{{ asset('asset/logo-unpam-300x291.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>[x-cloak] { display: none !important; }</style>
+    <script>
+        window.adminImagePicker = function (initialValue, options, assetBaseUrl) {
+            return {
+                open: false,
+                value: initialValue || '',
+                options: options || [],
+                previewFailed: false,
+
+                get previewUrl() {
+                    const path = (this.value || '').trim();
+                    if (!path) return '';
+
+                    if (/^(https?:)?\/\//i.test(path) || path.startsWith('data:')) {
+                        return path;
+                    }
+
+                    return assetBaseUrl + '/' + path.replace(/^\/+/, '');
+                },
+
+                selectImage(path) {
+                    this.value = path;
+                    this.previewFailed = false;
+                    this.open = false;
+                }
+            };
+        };
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100" x-data="{ activeTab: '{{ request('tab', 'dashboard') }}', editSceneModal: false, editSceneData: {} }">
+<body class="bg-gray-100" x-data="{ activeTab: '{{ request('tab', 'dashboard') }}' }">
     <!-- Header -->
     <header class="bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
@@ -289,8 +317,12 @@
                             <textarea name="description" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Deskripsi fasilitas..."></textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
-                            <input type="text" name="image" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="asset/gambar.jpg atau http://...">
+                            <x-admin.image-picker
+                                name="image"
+                                :value="old('image')"
+                                :images="$images"
+                                input-id="new-facility-image"
+                                required />
                             <button type="submit" class="mt-2 bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded w-full">
                                 <i class="fas fa-plus mr-1"></i>Tambah
                             </button>
@@ -317,8 +349,12 @@
                                     <textarea name="description" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2">{{ $facility->description }}</textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
-                                    <input type="text" name="image" value="{{ $facility->image }}" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <x-admin.image-picker
+                                        name="image"
+                                        :value="$facility->image"
+                                        :images="$images"
+                                        input-id="facility-image-{{ $facility->id }}"
+                                        required />
                                 </div>
                                 <div class="flex space-x-2">
                                     <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded flex-1">
@@ -326,11 +362,64 @@
                                     </button>
                                 </div>
                             </form>
-                            <form action="{{ route('admin.facility.delete') }}" method="POST" class="mt-2" onsubmit="return confirm('Yakin ingin menghapus fasilitas ini?')">
+
+                            <div class="mt-4 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                    <h4 class="font-semibold text-indigo-900">
+                                        <i class="fas fa-vr-cardboard mr-1"></i>Virtual Tour Fasilitas
+                                    </h4>
+                                    @if($facility->virtual_tour_url)
+                                        <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                                            <i class="fas fa-check-circle mr-1"></i>Aktif
+                                        </span>
+                                    @else
+                                        <span class="rounded-full bg-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-600">
+                                            Belum tersedia
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <form action="{{ route('admin.facility.tour.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                                    @csrf
+                                    <input type="hidden" name="facility_id" value="{{ $facility->id }}">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ $facility->virtual_tour_url ? 'Ganti file virtual tour' : 'Upload file virtual tour' }}
+                                        </label>
+                                        <input
+                                            type="file"
+                                            name="tour_file"
+                                            accept=".zip,.rar,.png,.jpg,.jpeg"
+                                            required
+                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm">
+                                        <p class="mt-1 text-xs text-gray-500">Format: ZIP, RAR, PNG, JPG, atau JPEG. Maksimal 40 MB.</p>
+                                    </div>
+                                    <button type="submit" class="w-full rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                                        <i class="fas fa-upload mr-1"></i>{{ $facility->virtual_tour_url ? 'Ganti Virtual Tour' : 'Upload Virtual Tour' }}
+                                    </button>
+                                </form>
+
+                                @if($facility->virtual_tour_url)
+                                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <a href="{{ $facility->virtual_tour_url }}" target="_blank" rel="noopener" class="rounded bg-slate-700 px-4 py-2 text-center text-sm text-white hover:bg-slate-800">
+                                            <i class="fas fa-eye mr-1"></i>Lihat Tour
+                                        </a>
+                                        <form action="{{ route('admin.facility.tour.delete') }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus virtual tour fasilitas ini?')">
+                                            @csrf
+                                            <input type="hidden" name="facility_id" value="{{ $facility->id }}">
+                                            <button type="submit" class="w-full rounded bg-orange-500 px-4 py-2 text-sm text-white hover:bg-orange-600">
+                                                <i class="fas fa-trash-alt mr-1"></i>Hapus Tour
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <form action="{{ route('admin.facility.delete') }}" method="POST" class="mt-3" onsubmit="return confirm('Yakin ingin menghapus fasilitas ini beserta virtual tournya?')">
                                 @csrf
                                 <input type="hidden" name="facility_id" value="{{ $facility->id }}">
                                 <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded w-full">
-                                    <i class="fas fa-trash mr-1"></i>Hapus
+                                    <i class="fas fa-trash mr-1"></i>Hapus Fasilitas
                                 </button>
                             </form>
                         </div>
@@ -419,15 +508,15 @@
             <div x-show="activeTab === 'virtual-tour'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola Virtual Tour</h2>
 
-                <!-- 3DVista Tours Management -->
+                <!-- Uploaded Tours Management -->
                 <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-200">
                     <h3 class="text-lg font-semibold mb-3 text-indigo-800">
-                        <i class="fas fa-street-view mr-2"></i>Tour Virtual 3DVista (Embed)
+                        <i class="fas fa-street-view mr-2"></i>Tour Virtual (Embed)
                     </h3>
 
-                    <!-- Upload ZIP Form -->
+                    <!-- Upload Tour Form -->
                     <div class="bg-white p-4 rounded-lg mb-4 border">
-                        <h4 class="font-medium mb-3 text-gray-800"><i class="fas fa-upload mr-2 text-indigo-600"></i>Upload Tour Baru (File ZIP)</h4>
+                        <h4 class="font-medium mb-3 text-gray-800"><i class="fas fa-upload mr-2 text-indigo-600"></i>Upload Tour Baru</h4>
                         <form action="{{ route('admin.tour.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -437,13 +526,14 @@
                                     <p class="text-xs text-gray-500 mt-1">Nama akan dijadikan slug untuk URL (spasi → strip)</p>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">File ZIP Virtual Tour</label>
-                                    <input type="file" name="tour_zip" accept=".zip" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    <p class="text-xs text-gray-500 mt-1">Maks 100MB. File ZIP harus mengandung index.htm hasil export 3DVista.</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">File Virtual Tour</label>
+                                    <input type="file" name="tour_file" accept=".zip,.rar,.png,.jpg,.jpeg" required class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <p class="text-xs text-gray-500 mt-1">Format: ZIP/RAR hasil export virtual tour, atau gambar panorama PNG/JPG/JPEG. Maksimal 40MB.</p>
+                                    <p class="text-xs text-amber-600 mt-1">Untuk hasil terbaik, gambar panorama menggunakan rasio equirectangular 2:1.</p>
                                 </div>
                             </div>
                             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition-colors">
-                                <i class="fas fa-cloud-upload-alt mr-1"></i>Upload & Extract Tour
+                                <i class="fas fa-cloud-upload-alt mr-1"></i>Upload & Proses Tour
                             </button>
                         </form>
                     </div>
@@ -506,160 +596,11 @@
                     </div>
                     @else
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center text-yellow-800 text-sm mb-3">
-                        <i class="fas fa-inbox mr-1"></i> Belum ada tour yang di-deploy. Upload file ZIP di atas untuk memulai.
+                        <i class="fas fa-inbox mr-1"></i> Belum ada tour yang di-deploy. Upload file virtual tour di atas untuk memulai.
                     </div>
                     @endif
                 </div>
 
-                <!-- VR Scenes Management -->
-                <div class="bg-gray-50 p-4 rounded-lg mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Kelola Scene VR</h3>
-
-                    <!-- Add Scene Form -->
-                    <div class="bg-white p-4 rounded-lg mb-4">
-                        <h4 class="font-medium mb-3">Tambah Scene Baru</h4>
-                        <form action="{{ route('admin.scene.add') }}" method="POST" class="space-y-4">
-                            @csrf
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Scene</label>
-                                    <input type="text" name="name" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Key Scene</label>
-                                    <input type="text" name="scene_key" required placeholder="contoh: entrance" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar 360°</label>
-                                    <input type="url" name="image_360" required placeholder="https://..." class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Icon (Font Awesome)</label>
-                                    <input type="text" name="icon" required placeholder="fas fa-door-open" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-                                <textarea name="description" required rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
-                            </div>
-                            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded">
-                                <i class="fas fa-plus mr-1"></i>Tambah Scene
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Existing Scenes -->
-                    <div class="space-y-4">
-                        @foreach($vrScenes as $scene)
-                            <div class="bg-white p-4 rounded-lg border">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1">
-                                        <h4 class="font-medium text-lg">{{ $scene->name }}</h4>
-                                        <p class="text-gray-600 mb-2">{{ $scene->description }}</p>
-                                        <div class="text-sm text-gray-500">
-                                            <span class="mr-4">Key: {{ $scene->scene_key }}</span>
-                                            <span class="mr-4">Icon: <i class="{{ $scene->icon }}"></i></span>
-                                            <span>ID: {{ $scene->id }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <button @click="editSceneData = { id: {{ $scene->id }}, name: '{{ addslashes($scene->name) }}', description: '{{ addslashes($scene->description) }}', scene_key: '{{ addslashes($scene->scene_key) }}', image_360: '{{ addslashes($scene->image_360) }}', icon: '{{ addslashes($scene->icon) }}' }; editSceneModal = true" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('admin.scene.delete') }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus scene ini?')">
-                                            @csrf
-                                            <input type="hidden" name="scene_id" value="{{ $scene->id }}">
-                                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- VR Hotspots Management -->
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-3">Kelola Hotspots</h3>
-
-                    <!-- Add Hotspot Form -->
-                    <div class="bg-white p-4 rounded-lg mb-4">
-                        <h4 class="font-medium mb-3">Tambah Hotspot Baru</h4>
-                        <form action="{{ route('admin.hotspot.add') }}" method="POST" class="space-y-4">
-                            @csrf
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Scene</label>
-                                    <select name="scene_id" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                        <option value="">Pilih Scene</option>
-                                        @foreach($vrScenes as $scene)
-                                            <option value="{{ $scene->id }}">{{ $scene->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Hotspot</label>
-                                    <input type="text" name="name" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Target Scene</label>
-                                    <select name="target_scene" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                        <option value="">Pilih Target Scene</option>
-                                        @foreach($vrScenes as $scene)
-                                            <option value="{{ $scene->scene_key }}">{{ $scene->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Posisi X</label>
-                                        <input type="number" step="0.1" name="position_x" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Posisi Y</label>
-                                        <input type="number" step="0.1" name="position_y" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Posisi Z</label>
-                                        <input type="number" step="0.1" name="position_z" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded">
-                                <i class="fas fa-plus mr-1"></i>Tambah Hotspot
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Existing Hotspots -->
-                    <div class="space-y-4">
-                        @foreach($vrHotspots as $hotspot)
-                            <div class="bg-white p-4 rounded-lg border">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1">
-                                        <h4 class="font-medium">{{ $hotspot->name }}</h4>
-                                        <p class="text-gray-600 text-sm">Scene: {{ $hotspot->scene->name ?? '-' }}</p>
-                                        <p class="text-gray-600 text-sm">Target: {{ $hotspot->target_scene }}</p>
-                                        <p class="text-gray-500 text-sm">
-                                            Posisi: ({{ $hotspot->position_x }}, {{ $hotspot->position_y }}, {{ $hotspot->position_z }})
-                                        </p>
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <form action="{{ route('admin.hotspot.delete') }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus hotspot ini?')">
-                                            @csrf
-                                            <input type="hidden" name="hotspot_id" value="{{ $hotspot->id }}">
-                                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
             </div>
 
             <!-- ==================== Kritik & Saran Tab ==================== -->
@@ -809,43 +750,5 @@
         </div>
     </div>
 
-    <!-- Edit Scene Modal (Alpine.js) -->
-    <div x-show="editSceneModal" x-transition class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @keydown.escape.window="editSceneModal = false">
-        <div class="bg-white p-6 rounded-lg max-w-md w-full mx-4" @click.outside="editSceneModal = false">
-            <h3 class="text-lg font-bold mb-4">Edit Scene</h3>
-            <form :action="'{{ route('admin.scene.update') }}'" method="POST" class="space-y-4">
-                @csrf
-                <input type="hidden" name="scene_id" :value="editSceneData.id">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Scene</label>
-                    <input type="text" name="name" x-model="editSceneData.name" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Key Scene</label>
-                    <input type="text" name="scene_key" x-model="editSceneData.scene_key" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar 360°</label>
-                    <input type="url" name="image_360" x-model="editSceneData.image_360" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Icon (Font Awesome)</label>
-                    <input type="text" name="icon" x-model="editSceneData.icon" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-                    <textarea name="description" x-model="editSceneData.description" required rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
-                </div>
-                <div class="flex space-x-2">
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                        <i class="fas fa-save mr-1"></i>Update
-                    </button>
-                    <button type="button" @click="editSceneModal = false" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded">
-                        Batal
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </body>
 </html>
