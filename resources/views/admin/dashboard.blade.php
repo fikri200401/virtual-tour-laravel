@@ -440,10 +440,10 @@
                                         <input
                                             type="file"
                                             name="tour_file"
-                                            accept=".zip,.rar,.png,.jpg,.jpeg"
+                                            accept=".zip,.rar,.png,.jpg,.jpeg,.webp"
                                             required
                                             class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm">
-                                        <p class="mt-1 text-xs text-gray-500">Format: ZIP, RAR, PNG, JPG, atau JPEG. Maksimal 40 MB.</p>
+                                        <p class="mt-1 text-xs text-gray-500">Format: ZIP, RAR, PNG, JPG, JPEG, atau WEBP. Maksimal 40 MB.</p>
                                     </div>
                                     <button type="submit" class="w-full rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
                                         <i class="fas fa-upload mr-1"></i>{{ $facility->virtual_tour_url ? 'Ganti Virtual Tour' : 'Unggah Virtual Tour' }}
@@ -572,8 +572,8 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">File Virtual Tour</label>
-                                    <input type="file" name="tour_file" accept=".zip,.rar,.png,.jpg,.jpeg" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    <p class="text-xs text-gray-500 mt-1">Format: ZIP/RAR hasil export virtual tour, atau gambar panorama PNG/JPG/JPEG. Maksimal 40MB.</p>
+                                    <input type="file" name="tour_file" accept=".zip,.rar,.png,.jpg,.jpeg,.webp" required class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                    <p class="text-xs text-gray-500 mt-1">Format: ZIP/RAR hasil export virtual tour, atau gambar panorama PNG/JPG/JPEG/WEBP. Maksimal 40MB.</p>
                                     <p class="text-xs text-amber-600 mt-1">Untuk hasil terbaik, gambar panorama menggunakan rasio equirectangular 2:1.</p>
                                 </div>
                             </div>

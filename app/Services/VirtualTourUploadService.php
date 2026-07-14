@@ -17,7 +17,7 @@ class VirtualTourUploadService
 {
     public const MAX_UPLOAD_KB = 40960;
 
-    public const SUPPORTED_EXTENSIONS = ['zip', 'rar', 'png', 'jpg', 'jpeg'];
+    public const SUPPORTED_EXTENSIONS = ['zip', 'rar', 'png', 'jpg', 'jpeg', 'webp'];
 
     private const MAX_EXTRACTED_FILES = 20000;
 
@@ -39,7 +39,7 @@ class VirtualTourUploadService
 
         try {
             return match ($extension) {
-                'png', 'jpg', 'jpeg' => $this->deployPanoramaImage($file, $tourDir, $tourName, $extension),
+                'png', 'jpg', 'jpeg', 'webp' => $this->deployPanoramaImage($file, $tourDir, $tourName, $extension),
                 'zip', 'rar' => $this->deployArchive($file->getPathname(), $tourDir, $extension),
                 default => throw new RuntimeException('Format file tidak didukung.'),
             };
@@ -59,7 +59,11 @@ class VirtualTourUploadService
         string $extension
     ): string {
         $imageInfo = @getimagesize($file->getPathname());
-        $expectedType = $extension === 'png' ? IMAGETYPE_PNG : IMAGETYPE_JPEG;
+        $expectedType = match ($extension) {
+            'png' => IMAGETYPE_PNG,
+            'webp' => IMAGETYPE_WEBP,
+            default => IMAGETYPE_JPEG,
+        };
 
         if ($imageInfo === false || ($imageInfo[2] ?? null) !== $expectedType) {
             throw new RuntimeException('File gambar tidak valid atau ekstensi tidak sesuai dengan isi file.');
@@ -67,7 +71,11 @@ class VirtualTourUploadService
 
         File::makeDirectory($tourDir, 0755, true, true);
 
-        $imageName = $extension === 'png' ? 'panorama.png' : 'panorama.jpg';
+        $imageName = match ($extension) {
+            'png' => 'panorama.png',
+            'webp' => 'panorama.webp',
+            default => 'panorama.jpg',
+        };
         $file->move($tourDir, $imageName);
         File::put($tourDir.DIRECTORY_SEPARATOR.'index.html', $this->panoramaViewerHtml($tourName, $imageName));
 

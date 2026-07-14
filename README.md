@@ -17,7 +17,7 @@ Fitur untuk admin:
 - Pengelolaan konten teks, URL, dan gambar website.
 - Pengelolaan fasilitas, akun admin, kritik, dan saran.
 - Galeri gambar yang dapat dipakai kembali pada formulir konten.
-- Unggah virtual tour dalam format ZIP, RAR, PNG, JPG, atau JPEG.
+- Unggah virtual tour dalam format ZIP, RAR, PNG, JPG, JPEG, atau WEBP.
 
 ## Kebutuhan sistem
 

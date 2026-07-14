@@ -67,7 +67,7 @@ class AdminFacilityController extends Controller
         $facility = Facility::findOrFail($validated['facility_id']);
         $tourFile = $request->file('tour_file');
         if (! $tourUploader->supports($tourFile)) {
-            return $this->redirectWithError('Format virtual tour fasilitas harus ZIP, RAR, PNG, JPG, atau JPEG.');
+            return $this->redirectWithError('Format virtual tour fasilitas harus ZIP, RAR, PNG, JPG, JPEG, atau WEBP.');
         }
 
         $nameSlug = Str::slug($facility->name) ?: 'tour';

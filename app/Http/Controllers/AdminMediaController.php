@@ -50,7 +50,7 @@ class AdminMediaController extends Controller
 
         $tourFile = $request->file('tour_file');
         if (! $tourUploader->supports($tourFile)) {
-            return $this->redirectTourWithError('Format file harus ZIP, RAR, PNG, JPG, atau JPEG.');
+            return $this->redirectTourWithError('Format file harus ZIP, RAR, PNG, JPG, JPEG, atau WEBP.');
         }
 
         $tourSlug = Str::slug($validated['tour_name']);
