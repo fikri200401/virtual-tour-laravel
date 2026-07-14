@@ -9,6 +9,11 @@
     background-size: cover;
 }
 
+.password-with-toggle::-ms-reveal,
+.password-with-toggle::-ms-clear {
+    display: none;
+}
+
 .navbar {
     transition: all 0.3s ease;
 }

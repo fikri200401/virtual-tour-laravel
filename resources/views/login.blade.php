@@ -23,8 +23,8 @@
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                     <div class="relative">
-                        <input :type="showPassword ? 'text' : 'password'" name="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" placeholder="Masukkan password" required>
-                        <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-2.5 text-gray-500">
+                        <input :type="showPassword ? 'text' : 'password'" name="password" id="password" class="password-with-toggle w-full py-2 pl-4 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800" placeholder="Masukkan password" required>
+                        <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-gray-500" :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'">
                             <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                         </button>
                     </div>
