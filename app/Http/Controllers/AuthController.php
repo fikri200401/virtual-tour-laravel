@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Services\WebsiteContentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function showLogin()
+    public function showLogin(WebsiteContentService $websiteContent)
     {
-        return view('login');
+        return view('login', ['content' => $websiteContent->all()]);
     }
 
     public function login(Request $request)

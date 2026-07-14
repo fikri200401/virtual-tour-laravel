@@ -1,11 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-    <section id="home" class="hero-section h-screen flex items-center justify-center text-white relative">
-        <div class="absolute inset-0 bg-black opacity-50"></div>
-        <div class="absolute top-1/5 w-full max-w-lg bg-white p-8 rounded-lg shadow-lg z-20">
+    <section id="home" class="hero-section relative flex h-screen items-center justify-center px-4 text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .82), rgba(0, 0, 0, .82)), url('{{ $content['hero_background_image_url'] }}');">
+        <div class="relative z-20 w-full max-w-lg rounded-lg bg-white p-8 shadow-lg">
             <div class="text-center mb-6">
-                <img src="{{ asset('asset/logo-unpam-300x291.png') }}" alt="Logo Universitas Pamulang" class="mx-auto h-24 w-24">
+                <img src="{{ $content['site_logo_url'] }}" alt="Logo Universitas Pamulang" class="mx-auto h-24 w-24">
             </div>
             <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Login Admin</h2>
 
