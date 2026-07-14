@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-                url('https://static.republika.co.id/uploads/member/images/news/2x4cu8nrv8.jpg') no-repeat center center;
+    background-color: #0f172a;
+    background-position: center;
+    background-repeat: no-repeat;
     background-size: cover;
 }
 

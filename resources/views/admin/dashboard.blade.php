@@ -272,29 +272,104 @@
 
             <!-- ==================== Content Management Tab ==================== -->
             <div x-show="activeTab === 'content'" class="p-6">
-                <h2 class="text-xl font-bold mb-4">Kelola Konten Website</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    @foreach($contents as $content)
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <form action="{{ route('admin.content.update') }}" method="POST" class="space-y-3">
-                                @csrf
-                                <input type="hidden" name="content_id" value="{{ $content->id }}">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                                        {{ ucfirst($content->section) }} - {{ ucfirst(str_replace('_', ' ', $content->content_key)) }}
-                                    </label>
-                                    @if($content->content_type == 'text' && strlen($content->content_value) > 100)
-                                        <textarea name="content_value" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2">{{ $content->content_value }}</textarea>
-                                    @else
-                                        <input type="text" name="content_value" value="{{ $content->content_value }}" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    @endif
-                                    <small class="text-gray-500">Tipe: {{ $content->content_type }}</small>
-                                </div>
-                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                                    <i class="fas fa-save mr-1"></i>Update
-                                </button>
-                            </form>
-                        </div>
+                <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Kelola Konten Website</h2>
+                        <p class="mt-1 text-sm text-gray-600">Kelola teks, gambar, dan URL berdasarkan bagian halaman. Buka bagian lalu simpan seluruh perubahannya sekaligus.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" @click="activeTab = 'upload'" class="rounded-md bg-slate-600 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+                            <i class="fas fa-images mr-1"></i>Galeri Gambar
+                        </button>
+                        <a href="{{ route('home') }}" target="_blank" rel="noopener" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                            <i class="fas fa-external-link-alt mr-1"></i>Preview Website
+                        </a>
+                    </div>
+                </div>
+
+                <div
+                    class="space-y-4"
+                    x-data="{ openSection: @js($contentGroups->keys()->first()) }">
+                    @foreach($contentGroups as $sectionKey => $group)
+                        <section class="overflow-visible rounded-xl border border-gray-200 bg-white shadow-sm">
+                            <button
+                                type="button"
+                                class="flex w-full items-center justify-between gap-4 rounded-xl px-5 py-4 text-left hover:bg-gray-50"
+                                @click="openSection = openSection === @js($sectionKey) ? null : @js($sectionKey)">
+                                <span>
+                                    <span class="block text-lg font-semibold text-gray-900">{{ $group['label'] }}</span>
+                                    <span class="mt-1 block text-sm font-normal text-gray-500">{{ $group['description'] }}</span>
+                                </span>
+                                <span class="flex shrink-0 items-center gap-3">
+                                    <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ $group['items']->count() }} field</span>
+                                    <i class="fas fa-chevron-down text-gray-400 transition-transform" :class="{ 'rotate-180': openSection === @js($sectionKey) }"></i>
+                                </span>
+                            </button>
+
+                            <div x-show="openSection === @js($sectionKey)" x-transition x-cloak class="border-t border-gray-200">
+                                @if($sectionKey === 'other')
+                                    <div class="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
+                                        @foreach($group['items'] as $content)
+                                            <form action="{{ route('admin.content.update') }}" method="POST" class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                                @csrf
+                                                <input type="hidden" name="content_id" value="{{ $content->id }}">
+                                                <label class="mb-1 block text-sm font-semibold text-gray-800">{{ ucfirst(str_replace('_', ' ', $content->content_key)) }}</label>
+                                                <input type="text" name="content_value" value="{{ $content->content_value }}" class="w-full rounded-md border border-gray-300 px-3 py-2">
+                                                <button type="submit" class="mt-3 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"><i class="fas fa-save mr-1"></i>Simpan</button>
+                                            </form>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <form action="{{ route('admin.content.section.update') }}" method="POST" class="p-5">
+                                        @csrf
+                                        <input type="hidden" name="section" value="{{ $sectionKey }}">
+
+                                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                            @foreach($group['items'] as $content)
+                                                @php
+                                                    $definition = $contentDefinitions[$content->content_key] ?? null;
+                                                    $fieldLabel = $definition['label'] ?? ucfirst(str_replace('_', ' ', $content->content_key));
+                                                    $isLongText = strlen($content->content_value) > 90
+                                                        || str_contains($content->content_key, 'description')
+                                                        || in_array($content->content_key, ['contact_address', 'about_commitment_text'], true);
+                                                @endphp
+                                                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                                    @if($content->content_type === 'image')
+                                                        <x-admin.image-picker
+                                                            name="contents[{{ $content->id }}]"
+                                                            :value="$content->content_value"
+                                                            :images="$images"
+                                                            input-id="content-image-{{ $content->id }}"
+                                                            :label="$fieldLabel"
+                                                            required />
+                                                    @else
+                                                        <div class="mb-2 flex items-center justify-between gap-2">
+                                                            <label for="content-{{ $content->id }}" class="block text-sm font-semibold text-gray-800">{{ $fieldLabel }}</label>
+                                                            <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $content->content_type === 'url' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600' }}">
+                                                                {{ $content->content_type === 'url' ? 'URL' : 'Teks' }}
+                                                            </span>
+                                                        </div>
+
+                                                        @if($isLongText)
+                                                            <textarea id="content-{{ $content->id }}" name="contents[{{ $content->id }}]" rows="4" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500">{{ $content->content_value }}</textarea>
+                                                        @else
+                                                            <input id="content-{{ $content->id }}" type="{{ $content->content_type === 'url' ? 'url' : 'text' }}" name="contents[{{ $content->id }}]" value="{{ $content->content_value }}" class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500">
+                                                        @endif
+                                                        <p class="mt-1 text-xs text-gray-400">Key: {{ $content->content_key }}</p>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        <div class="mt-5 flex justify-end border-t border-gray-200 pt-4">
+                                            <button type="submit" class="rounded-md bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700">
+                                                <i class="fas fa-save mr-1"></i>Simpan Bagian {{ $group['label'] }}
+                                            </button>
+                                        </div>
+                                    </form>
+                                @endif
+                            </div>
+                        </section>
                     @endforeach
                 </div>
             </div>

@@ -1,71 +1,63 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Hero Section -->
-    <section id="home" class="hero-section h-screen flex items-center justify-center text-white">
-        <div class="text-center px-4">
-            <h1 class="text-4xl md:text-6xl font-bold mb-6">{{ e($content['hero_title']) }}</h1>
-            <h2 class="text-3xl md:text-5xl font-bold mb-8">{{ e($content['hero_subtitle']) }}</h2>
-            <p class="text-xl mb-10 max-w-3xl mx-auto">{{ e($content['hero_description']) }}</p>
-            <a href="{{ route('virtual-tour') }}" class="mt-8 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-3 px-8 rounded-full transition duration-300 inline-flex items-center">
-                <i class="fas fa-vr-cardboard mr-2"></i> Mulai Tour
+    <section id="home" class="hero-section flex h-screen items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url('{{ $content['hero_background_image_url'] }}');">
+        <div class="px-4 text-center">
+            @if($content['welcome_message'])
+                <p class="mx-auto mb-5 w-fit rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm backdrop-blur-sm">{{ $content['welcome_message'] }}</p>
+            @endif
+            <h1 class="mb-6 text-4xl font-bold md:text-6xl">{{ $content['hero_title'] }}</h1>
+            <h2 class="mb-8 text-3xl font-bold md:text-5xl">{{ $content['hero_subtitle'] }}</h2>
+            <p class="mx-auto mb-10 max-w-3xl text-xl">{{ $content['hero_description'] }}</p>
+            <a href="{{ route('virtual-tour') }}" class="mt-8 inline-flex items-center rounded-full bg-yellow-500 px-8 py-3 font-medium text-white transition duration-300 hover:bg-yellow-600">
+                <i class="fas fa-vr-cardboard mr-2"></i>{{ $content['home_tour_button_text'] }}
             </a>
         </div>
     </section>
 
-    <!-- Virtual Tour Section -->
-    <section id="tour" class="py-20 bg-white">
+    <section id="tour" class="bg-white py-20">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl font-bold text-center mb-16">VIRTUAL TOUR 360°</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <div class="bg-gray-200 rounded-lg overflow-hidden h-96 relative">
-                        <img src="https://static.republika.co.id/uploads/member/images/news/2x4cu8nrv8.jpg" alt="Pratinjau virtual tour 360 derajat" class="w-full h-full object-cover">
-                    </div>
+            <h2 class="mb-16 text-center text-3xl font-bold">{{ $content['home_tour_title'] }}</h2>
+            <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+                <div class="relative h-96 overflow-hidden rounded-lg bg-gray-200">
+                    <img src="{{ $content['home_tour_image_url'] }}" alt="{{ $content['home_tour_heading'] }}" class="h-full w-full object-cover">
                 </div>
                 <div>
-                    <h3 class="text-2xl font-semibold mb-4">Jelajahi Kampus Secara Virtual</h3>
-                    <p class="mb-6 leading-relaxed">Dengan teknologi virtual tour 360°, Anda dapat menjelajahi berbagai fasilitas Prodi Sistem Informasi Universitas Pamulang dari mana saja dan kapan saja.</p>
+                    <h3 class="mb-4 text-2xl font-semibold">{{ $content['home_tour_heading'] }}</h3>
+                    <p class="mb-6 leading-relaxed">{{ $content['home_tour_description'] }}</p>
                     <div class="space-y-4">
-                        <div class="flex items-start">
-                            <div class="bg-blue-100 p-2 rounded-full mr-4"><i class="fas fa-check text-blue-600"></i></div>
-                            <p>Pandangan 360° berbagai ruangan penting</p>
-                        </div>
-                        <div class="flex items-start">
-                            <div class="bg-blue-100 p-2 rounded-full mr-4"><i class="fas fa-check text-blue-600"></i></div>
-                            <p>Navigasi intuitif dengan menu interaktif</p>
-                        </div>
-                        <div class="flex items-start">
-                            <div class="bg-blue-100 p-2 rounded-full mr-4"><i class="fas fa-check text-blue-600"></i></div>
-                            <p>Informasi detail setiap fasilitas</p>
-                        </div>
+                        @foreach([$content['home_tour_feature_1'], $content['home_tour_feature_2'], $content['home_tour_feature_3']] as $feature)
+                            <div class="flex items-start">
+                                <div class="mr-4 rounded-full bg-blue-100 p-2"><i class="fas fa-check text-blue-600"></i></div>
+                                <p>{{ $feature }}</p>
+                            </div>
+                        @endforeach
                     </div>
-                    <a href="{{ route('virtual-tour') }}" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-full transition duration-300 inline-flex items-center">
-                        <i class="fas fa-vr-cardboard mr-2"></i> Mulai Virtual Tour
+                    <a href="{{ route('virtual-tour') }}" class="mt-8 inline-flex items-center rounded-full bg-blue-600 px-8 py-3 font-medium text-white transition duration-300 hover:bg-blue-700">
+                        <i class="fas fa-vr-cardboard mr-2"></i>{{ $content['home_tour_button_text'] }}
                     </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Facilities Section -->
-    <section id="fasilitas" class="py-20 bg-gray-100">
+    <section id="fasilitas" class="bg-gray-100 py-20">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl font-bold text-center mb-6">{{ e($content['facilities_title']) }}</h2>
-            <p class="text-center text-gray-700 mb-16 max-w-2xl mx-auto">{{ e($content['facilities_description']) }}</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <h2 class="mb-6 text-center text-3xl font-bold">{{ $content['facilities_title'] }}</h2>
+            <p class="mx-auto mb-16 max-w-2xl text-center text-gray-700">{{ $content['facilities_description'] }}</p>
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 @forelse($facilities as $facility)
-                    <div class="facility-card bg-white rounded-lg overflow-hidden shadow-md transition duration-300">
+                    <div class="facility-card overflow-hidden rounded-lg bg-white shadow-md transition duration-300">
                         <div class="h-48 overflow-hidden">
-                            <img src="{{ asset($facility->image ?? 'asset/default.jpg') }}" alt="{{ e($facility->name) }}" class="w-full h-full object-cover">
+                            <img src="{{ asset($facility->image ?? 'asset/default.jpg') }}" alt="{{ $facility->name }}" class="h-full w-full object-cover">
                         </div>
                         <div class="p-6">
-                            <h3 class="text-xl font-semibold mb-2">{{ e($facility->name) }}</h3>
-                            <p class="text-gray-600">{{ e($facility->description) }}</p>
+                            <h3 class="mb-2 text-xl font-semibold">{{ $facility->name }}</h3>
+                            <p class="text-gray-600">{{ $facility->description }}</p>
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center text-yellow-700">
+                    <div class="col-span-full rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center text-yellow-700">
                         Belum ada data fasilitas. Tambahkan fasilitas dari dashboard admin.
                     </div>
                 @endforelse
@@ -73,53 +65,50 @@
         </div>
     </section>
 
-    <!-- Campus Location Section -->
-    <section id="lokasi-kampus" class="py-16 bg-white">
+    <section id="lokasi-kampus" class="bg-white py-16">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Lokasi Kampus UNPAM Viktor</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <h2 class="mb-12 text-center text-3xl font-bold text-gray-800">{{ $content['campus_location_title'] }}</h2>
+            <div class="grid grid-cols-1 gap-12 md:grid-cols-2">
                 <div>
-                    <h3 class="text-xl font-semibold mb-4">Denah Kampus</h3>
-                    <img src="{{ asset('asset/kampus2.B0WqicWG.jpg') }}" alt="Foto Denah" class="rounded-lg shadow-xl">
-                    <p class="text-gray-600 mt-4">Lihat denah kampus untuk orientasi lebih lanjut.</p>
+                    <h3 class="mb-4 text-xl font-semibold">{{ $content['campus_map_title'] }}</h3>
+                    <img src="{{ $content['campus_map_image_url'] }}" alt="{{ $content['campus_map_title'] }}" class="rounded-lg shadow-xl">
+                    <p class="mt-4 text-gray-600">{{ $content['campus_map_description'] }}</p>
                 </div>
                 <div>
-                    <h3 class="text-xl font-semibold mb-4">Lokasi di Google Maps</h3>
-                    <div class="w-full h-[400px]">
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.155041658!2d106.6889577!3d-6.3462879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69e5a6e26dc3cd%3A0xccd6344b8021119d!2sUniversitas%20Pamulang%20Kampus%202%20(UNPAM%20Viktor)!5e0!3m2!1sid!2sid!4v1723900000000!5m2!1sid!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="rounded-lg shadow-lg"></iframe>
+                    <h3 class="mb-4 text-xl font-semibold">{{ $content['google_maps_title'] }}</h3>
+                    <div class="h-[400px] w-full">
+                        <iframe src="{{ $content['google_maps_embed_url'] }}" title="{{ $content['google_maps_title'] }}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="rounded-lg shadow-lg"></iframe>
                     </div>
-                    <p class="text-gray-600 mt-4">Temukan lokasi kami dengan mudah melalui Google Maps.</p>
+                    <p class="mt-4 text-gray-600">{{ $content['google_maps_description'] }}</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- About Section -->
-    <section id="about" class="py-20 bg-white">
+    <section id="about" class="bg-white py-20">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl font-bold text-center mb-16">TENTANG PRODI SISTEM INFORMASI</h2>
-            <div class="flex flex-col md:flex-row items-center">
-                <div class="md:w-1/2 mb-10 md:mb-0">
-                    <img src="{{ asset('asset/Landscape HMSI.jpeg') }}" alt="Foto Kegiatan" class="rounded-lg shadow-xl">
+            <h2 class="mb-16 text-center text-3xl font-bold">{{ $content['about_title'] }}</h2>
+            <div class="flex flex-col items-center md:flex-row">
+                <div class="mb-10 md:mb-0 md:w-1/2">
+                    <img src="{{ $content['about_image_url'] }}" alt="{{ $content['about_title'] }}" class="rounded-lg shadow-xl">
                 </div>
                 <div class="md:w-1/2 md:pl-12">
-                    <h3 class="text-2xl font-semibold mb-4">Visi & Misi</h3>
-                    <p class="mb-6 leading-relaxed">Menjadi program studi unggulan dalam bidang Sistem Informasi yang berdaya saing di tingkat nasional pada tahun 2030.</p>
-                    <p class="mb-6 leading-relaxed">Untuk mencapai visi ini, kami berkomitmen untuk:</p>
-                    <ul class="list-disc pl-6 mb-6 space-y-2">
-                        <li>Menyelenggarakan pendidikan berbasis kompetensi</li>
-                        <li>Mengembangkan penelitian inovatif</li>
-                        <li>Melaksanakan pengabdian kepada masyarakat</li>
-                        <li>Menjalin kerjasama dengan berbagai pihak</li>
+                    <h3 class="mb-4 text-2xl font-semibold">{{ $content['about_subtitle'] }}</h3>
+                    <p class="mb-6 leading-relaxed">{{ $content['about_description'] }}</p>
+                    <p class="mb-6 leading-relaxed">{{ $content['about_commitment_text'] }}</p>
+                    <ul class="mb-6 list-disc space-y-2 pl-6">
+                        <li>{{ $content['about_point_1'] }}</li>
+                        <li>{{ $content['about_point_2'] }}</li>
+                        <li>{{ $content['about_point_3'] }}</li>
+                        <li>{{ $content['about_point_4'] }}</li>
                     </ul>
                     <div class="mt-8">
-                        <a href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 inline-block">Selengkapnya</a>
+                        <a href="{{ route('tentang') }}" class="inline-block rounded-md bg-blue-500 px-6 py-2 font-medium text-white transition duration-300 hover:bg-blue-700">{{ $content['about_button_text'] }}</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Contact Section -->
     @include('partials.contact')
 @endsection

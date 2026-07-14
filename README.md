@@ -49,7 +49,7 @@
 
 ### 🔐 Fitur Admin
 - **Dashboard** — Statistik pengunjung dan ringkasan data
-- **Manajemen Konten** — Update konten halaman secara dinamis
+- **Manajemen Konten** — Kelola teks, gambar, dan URL per bagian halaman dengan galeri gambar terintegrasi
 - **Manajemen Fasilitas** — Tambah, edit, hapus data serta virtual tour khusus per fasilitas
 - **Manajemen Virtual Tour** — Upload dan hapus tour umum dalam format ZIP, RAR, PNG, JPG, atau JPEG
 - **Manajemen Pengguna** — Kelola akun admin

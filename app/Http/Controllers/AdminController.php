@@ -8,7 +8,9 @@ use App\Models\Facility;
 use App\Models\KritikSaran;
 use App\Models\VisitorStat;
 use App\Services\VirtualTourUploadService;
+use App\Services\WebsiteContentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -23,6 +25,35 @@ class AdminController extends Controller
             ->orderBy('section')
             ->orderBy('content_key')
             ->get();
+        $contentDefinitions = WebsiteContentService::definitions();
+        $contentGroups = collect(WebsiteContentService::sections())
+            ->map(function (array $metadata, string $section) use ($contents, $contentDefinitions) {
+                $items = $contents
+                    ->where('section', $section)
+                    ->sortBy(function (Content $content) use ($contentDefinitions) {
+                        $position = array_search($content->content_key, array_keys($contentDefinitions), true);
+
+                        return $position === false ? PHP_INT_MAX : $position;
+                    })
+                    ->values();
+
+                return [
+                    'label' => $metadata['label'],
+                    'description' => $metadata['description'],
+                    'items' => $items,
+                ];
+            })
+            ->filter(fn (array $group) => $group['items']->isNotEmpty());
+
+        $knownContentIds = $contentGroups->pluck('items')->flatten()->pluck('id');
+        $otherContents = $contents->whereNotIn('id', $knownContentIds)->values();
+        if ($otherContents->isNotEmpty()) {
+            $contentGroups->put('other', [
+                'label' => 'Konten Lainnya',
+                'description' => 'Field tambahan yang belum dikelompokkan ke halaman tertentu.',
+                'items' => $otherContents,
+            ]);
+        }
         $facilities = Facility::orderByDesc('created_at')->get();
         $users = Admin::orderByDesc('id')->get();
         $kritikSaran = KritikSaran::orderByDesc('created_at')->get();
@@ -59,7 +90,8 @@ class AdminController extends Controller
 
         return view('admin.dashboard', compact(
             'contents', 'facilities', 'users',
-            'kritikSaran', 'stats', 'recentVisitors', 'images', 'telegramSettings'
+            'kritikSaran', 'stats', 'recentVisitors', 'images', 'telegramSettings',
+            'contentDefinitions', 'contentGroups'
         ));
     }
 
@@ -69,6 +101,32 @@ class AdminController extends Controller
         Content::where('id', $request->content_id)->update(['content_value' => $request->content_value]);
 
         return redirect()->route('admin.dashboard', ['tab' => 'content'])->with('success', 'Konten berhasil diupdate!');
+    }
+
+    public function updateContentSection(Request $request)
+    {
+        $validated = $request->validate([
+            'section' => 'required|string|max:50',
+            'contents' => 'required|array',
+            'contents.*' => 'nullable|string|max:20000',
+        ]);
+
+        $contentIds = array_map('intval', array_keys($validated['contents']));
+        $allowedContents = Content::where('section', $validated['section'])
+            ->whereNotIn('content_key', ['telegram_bot_token', 'telegram_chat_id'])
+            ->whereIn('id', $contentIds)
+            ->get();
+
+        DB::transaction(function () use ($allowedContents, $validated) {
+            foreach ($allowedContents as $content) {
+                $content->update([
+                    'content_value' => (string) ($validated['contents'][$content->id] ?? ''),
+                ]);
+            }
+        });
+
+        return redirect()->route('admin.dashboard', ['tab' => 'content'])
+            ->with('success', 'Semua konten pada bagian ini berhasil disimpan!');
     }
 
     public function addFacility(Request $request)

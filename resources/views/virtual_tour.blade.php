@@ -168,7 +168,7 @@
     @endpush
 
     <!-- Hero Section -->
-    <section id="home" class="hero-section h-screen flex items-center justify-center text-white">
+    <section id="home" class="hero-section h-screen flex items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url('{{ $content['vr_background_image_url'] }}');">
         <div class="text-center px-4">
             <h1 class="text-4xl md:text-6xl font-bold mb-6">{{ e($content['vr_title']) }}</h1>
             <h2 class="text-3xl md:text-5xl font-bold mb-8">{{ e($content['vr_subtitle']) }}</h2>
@@ -184,8 +184,8 @@
     <section id="tour" class="py-20 bg-gradient-to-b from-gray-50 to-white" x-data="virtualTourApp()">
         <div class="container mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-800 mb-3">VIRTUAL TOUR 360°</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">Pilih lokasi di bawah untuk memulai tur virtual interaktif. Gunakan mouse atau sentuh layar untuk melihat ke segala arah.</p>
+                <h2 class="text-3xl font-bold text-gray-800 mb-3">{{ $content['vr_section_title'] }}</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">{{ $content['vr_section_description'] }}</p>
             </div>
 
             <!-- Tour Location Selector -->

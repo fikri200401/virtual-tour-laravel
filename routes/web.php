@@ -32,6 +32,7 @@ Route::middleware(AdminAuth::class)->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
     Route::post('/content/update', [AdminController::class, 'updateContent'])->name('admin.content.update');
+    Route::post('/content/update-section', [AdminController::class, 'updateContentSection'])->name('admin.content.section.update');
 
     Route::post('/facility/add', [AdminController::class, 'addFacility'])->name('admin.facility.add');
     Route::post('/facility/update', [AdminController::class, 'updateFacility'])->name('admin.facility.update');

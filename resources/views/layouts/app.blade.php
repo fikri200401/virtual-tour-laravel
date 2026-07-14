@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Virtual Tour Prodi Sistem Informasi - Universitas Pamulang')</title>
-    <link rel="icon" type="image/png" href="{{ asset('asset/logo-unpam-300x291.png') }}">
+    <link rel="icon" type="image/png" href="{{ $content['site_logo_url'] ?? asset('asset/logo-unpam-300x291.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
@@ -17,10 +17,10 @@
          :class="{ 'scrolled': scrolled, 'bg-gray-600': {{ request()->routeIs('fasilitas', 'tentang') ? 'true' : 'false' }} }">
         <div class="container mx-auto px-6 py-3 flex justify-between items-center">
             <div class="flex items-center">
-                <img src="{{ asset('asset/logo-unpam-300x291.png') }}" alt="Logo Universitas Pamulang" class="h-12">
+                <img src="{{ $content['site_logo_url'] ?? asset('asset/logo-unpam-300x291.png') }}" alt="Logo {{ $content['navbar_title'] ?? 'Universitas Pamulang' }}" class="h-12">
                 <div class="ml-4">
-                    <h1 class="text-xl font-bold">UNIVERSITAS PAMULANG</h1>
-                    <p class="text-sm">Prodi Sistem Informasi</p>
+                    <h1 class="text-xl font-bold">{{ $content['navbar_title'] ?? 'UNIVERSITAS PAMULANG' }}</h1>
+                    <p class="text-sm">{{ $content['navbar_subtitle'] ?? 'Prodi Sistem Informasi' }}</p>
                 </div>
             </div>
             <div class="hidden md:flex space-x-8">
@@ -51,8 +51,8 @@
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 justify-items-center text-center">
                 <div>
-                    <img src="{{ asset('asset/logo-unpam-300x291.png') }}" alt="Logo Universitas Pamulang" class="h-16 w-16 mb-4">
-                    <p class="text-gray-400 max-w-sm">Universitas Pamulang memberikan pendidikan berkualitas untuk masa depan yang lebih baik.</p>
+                    <img src="{{ $content['site_logo_url'] ?? asset('asset/logo-unpam-300x291.png') }}" alt="Logo {{ $content['navbar_title'] ?? 'Universitas Pamulang' }}" class="h-16 w-16 mb-4">
+                    <p class="text-gray-400 max-w-sm">{{ $content['footer_description'] ?? 'Universitas Pamulang memberikan pendidikan berkualitas untuk masa depan yang lebih baik.' }}</p>
                 </div>
                 <div>
                     <h4 class="text-lg font-semibold mb-4">Tautan Cepat</h4>
@@ -85,7 +85,7 @@
                 </div>
             </div>
             <div class="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 Universitas Pamulang</p>
+                <p>&copy; {{ now()->year }} {{ $content['footer_text'] ?? 'Universitas Pamulang' }}</p>
             </div>
         </div>
     </footer>

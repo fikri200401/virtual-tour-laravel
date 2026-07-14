@@ -164,11 +164,11 @@
         <div class="container mx-auto px-6">
             <div class="mx-auto mb-12 max-w-3xl text-center">
                 <span class="mb-3 inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
-                    <i class="fas fa-vr-cardboard mr-2"></i>Virtual Tour Khusus Fasilitas
+                    <i class="fas fa-vr-cardboard mr-2"></i>{{ $content['facility_page_badge'] }}
                 </span>
-                <h2 class="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">FASILITAS UNPAM VIKTOR</h2>
+                <h2 class="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">{{ $content['facility_page_title'] }}</h2>
                 <p class="text-lg leading-relaxed text-gray-600">
-                    Pilih fasilitas untuk melihat informasi dan menjelajahi ruangannya melalui virtual tour 360&deg;.
+                    {{ $content['facility_page_description'] }}
                 </p>
             </div>
 
