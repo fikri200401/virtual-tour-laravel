@@ -3,9 +3,6 @@
 @section('content')
     <section id="home" class="hero-section flex h-screen items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url('{{ $content['hero_background_image_url'] }}');">
         <div class="px-4 text-center">
-            @if($content['welcome_message'])
-                <p class="mx-auto mb-5 w-fit rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm backdrop-blur-sm">{{ $content['welcome_message'] }}</p>
-            @endif
             <h1 class="mb-6 text-4xl font-bold md:text-6xl">{{ $content['hero_title'] }}</h1>
             <h2 class="mb-8 text-3xl font-bold md:text-5xl">{{ $content['hero_subtitle'] }}</h2>
             <p class="mx-auto mb-10 max-w-3xl text-xl">{{ $content['hero_description'] }}</p>

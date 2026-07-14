@@ -58,7 +58,6 @@ class WebsiteContentService
             'footer_description' => self::field('global', 'Deskripsi Footer', 'text', 'Universitas Pamulang memberikan pendidikan berkualitas untuk masa depan yang lebih baik.'),
             'footer_text' => self::field('global', 'Teks Hak Cipta', 'text', 'Universitas Pamulang'),
 
-            'welcome_message' => self::field('home_hero', 'Pesan Sambutan', 'text', 'Selamat datang di website resmi Virtual Tour Prodi Sistem Informasi UNPAM'),
             'hero_title' => self::field('home_hero', 'Judul Utama', 'text', 'SELAMAT DATANG DI'),
             'hero_subtitle' => self::field('home_hero', 'Subjudul Utama', 'text', 'VIRTUAL TOUR PRODI SISTEM INFORMASI'),
             'hero_description' => self::field('home_hero', 'Deskripsi Hero', 'text', 'Jelajahi fasilitas dan lingkungan kampus Universitas Pamulang secara virtual'),
