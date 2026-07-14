@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Hero + Login Section -->
     <section id="home" class="hero-section h-screen flex items-center justify-center text-white relative">
         <div class="absolute inset-0 bg-black opacity-50"></div>
         <div class="absolute top-1/5 w-full max-w-lg bg-white p-8 rounded-lg shadow-lg z-20">

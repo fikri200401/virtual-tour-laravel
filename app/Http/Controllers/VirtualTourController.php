@@ -11,7 +11,6 @@ class VirtualTourController extends Controller
     {
         $content = $websiteContent->all();
 
-        // Scan virtual tours deployed in public/virtual-tours/.
         $virtualTours = [];
         $tourPath = public_path('virtual-tours');
         if (File::isDirectory($tourPath)) {
@@ -36,9 +35,6 @@ class VirtualTourController extends Controller
         return view('virtual_tour', compact('content', 'virtualTours'));
     }
 
-    /**
-     * Get an appropriate Font Awesome icon based on tour name.
-     */
     private function getTourIcon(string $name): string
     {
         $icons = [

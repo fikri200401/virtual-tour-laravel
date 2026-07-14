@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\VisitorStat;
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\VisitorStat;
 
 class TrackVisitor
 {
@@ -21,7 +21,7 @@ class TrackVisitor
             ->where('visit_date', $visitDate)
             ->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             VisitorStat::create([
                 'ip_address' => $ipAddress,
                 'user_agent' => $userAgent,

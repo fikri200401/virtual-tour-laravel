@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "unpam/virtual-tour",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Website virtual tour Program Studi Sistem Informasi Universitas Pamulang.",
+    "keywords": ["laravel", "virtual-tour", "unpam"],
     "license": "MIT",
     "require": {
         "php": "^8.2",

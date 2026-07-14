@@ -48,7 +48,7 @@
         </button>
     </div>
 
-    <p class="mt-1 text-xs text-gray-500">Ketik URL/link gambar atau pilih gambar yang sudah diupload.</p>
+    <p class="mt-1 text-xs text-gray-500">Masukkan URL gambar atau pilih gambar yang sudah diunggah.</p>
 
     <div x-show="value" x-cloak class="mt-2 flex items-center gap-3 rounded-md border border-gray-200 bg-white p-2">
         <div class="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden rounded bg-gray-100">
@@ -74,7 +74,7 @@
         class="absolute right-0 z-40 mt-2 w-full min-w-[18rem] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl md:w-[36rem]"
         role="listbox">
         <div class="border-b border-gray-200 bg-gray-50 px-4 py-3">
-            <p class="font-semibold text-gray-800">Pilih dari Upload Gambar</p>
+            <p class="font-semibold text-gray-800">Pilih dari Galeri Gambar</p>
             <p class="text-xs text-gray-500">Klik thumbnail untuk memasukkan URL gambar ke kolom.</p>
         </div>
 
@@ -94,7 +94,7 @@
         </div>
 
         <div x-show="options.length === 0" class="p-6 text-center text-sm text-gray-500">
-            Belum ada gambar yang diupload.
+            Belum ada gambar yang diunggah.
         </div>
 
         <div class="border-t border-gray-200 bg-gray-50 p-3">
@@ -102,7 +102,7 @@
                 type="button"
                 class="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 @click="activeTab = 'upload'; open = false">
-                <i class="fas fa-upload mr-1"></i>Buka Menu Upload Gambar
+                <i class="fas fa-upload mr-1"></i>Buka Menu Unggah Gambar
             </button>
         </div>
     </div>

@@ -1,151 +1,47 @@
-# 🏫 Virtual Tour University
+# Virtual Tour UNPAM
 
-<p align="center">
-  <img src="public/asset/logo-unpam-300x291.png" width="120" alt="Logo Universitas">
-</p>
+Aplikasi Laravel untuk menampilkan lingkungan Program Studi Sistem Informasi Universitas Pamulang melalui panorama 360 derajat dan hasil ekspor virtual tour.
 
-<p align="center">
-  Aplikasi Virtual Tour berbasis web untuk menampilkan lingkungan kampus secara interaktif menggunakan teknologi 360°.
-</p>
+## Fitur
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Laravel-11-red?style=for-the-badge&logo=laravel" alt="Laravel 11">
-  <img src="https://img.shields.io/badge/PHP-8.2+-blue?style=for-the-badge&logo=php" alt="PHP 8.2">
-  <img src="https://img.shields.io/badge/TailwindCSS-3-06B6D4?style=for-the-badge&logo=tailwindcss" alt="TailwindCSS">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
-</p>
+Fitur untuk pengunjung:
 
----
+- Beranda, informasi fasilitas, profil program studi, dan lokasi kampus.
+- Virtual tour umum serta virtual tour yang terpisah untuk setiap fasilitas.
+- Formulir kritik dan saran dengan notifikasi Telegram opsional.
+- Tampilan responsif untuk desktop dan perangkat seluler.
 
-## 📋 Daftar Isi
+Fitur untuk admin:
 
-- [Tentang Proyek](#-tentang-proyek)
-- [Fitur](#-fitur)
-- [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
-- [Struktur Proyek](#-struktur-proyek)
-- [Cara Instalasi](#-cara-instalasi)
-- [Konfigurasi](#-konfigurasi)
-- [Menjalankan Aplikasi](#-menjalankan-aplikasi)
-- [Akses Admin](#-akses-admin)
-- [Lisensi](#-lisensi)
+- Statistik pengunjung.
+- Pengelolaan konten teks, URL, dan gambar website.
+- Pengelolaan fasilitas, akun admin, kritik, dan saran.
+- Galeri gambar yang dapat dipakai kembali pada formulir konten.
+- Unggah virtual tour dalam format ZIP, RAR, PNG, JPG, atau JPEG.
 
----
+## Kebutuhan sistem
 
-## 🎯 Tentang Proyek
+- PHP 8.2 atau lebih baru.
+- Composer.
+- MySQL atau MariaDB.
+- Node.js dan npm.
+- Ekstensi PHP `zip` untuk arsip ZIP.
+- Ekstensi PHP `rar` atau `bsdtar` untuk arsip RAR.
 
-**Virtual Tour University** adalah aplikasi web interaktif yang memungkinkan pengguna untuk menjelajahi lingkungan kampus secara virtual menggunakan teknologi panorama 360°. Aplikasi ini dibangun di atas framework Laravel 11 dengan antarmuka yang modern dan responsif menggunakan Tailwind CSS.
+## Instalasi
 
----
-
-## ✨ Fitur
-
-### 👥 Fitur Publik
-- **🏠 Halaman Beranda** — Informasi umum dan sambutan kampus
-- **🔭 Virtual Tour 360°** — Jelajahi hasil export virtual tour dan panorama gambar secara interaktif
-- **🏛️ Fasilitas** — Galeri fasilitas dengan virtual tour 360° khusus per fasilitas
-- **ℹ️ Tentang** — Profil dan sejarah universitas
-- **📩 Kritik & Saran** — Form pengiriman masukan dari pengunjung
-- **📊 Tracking Pengunjung** — Statistik kunjungan otomatis
-
-### 🔐 Fitur Admin
-- **Dashboard** — Statistik pengunjung dan ringkasan data
-- **Manajemen Konten** — Kelola teks, gambar, dan URL per bagian halaman dengan galeri gambar terintegrasi
-- **Manajemen Fasilitas** — Tambah, edit, hapus data serta virtual tour khusus per fasilitas
-- **Manajemen Virtual Tour** — Upload dan hapus tour umum dalam format ZIP, RAR, PNG, JPG, atau JPEG
-- **Manajemen Pengguna** — Kelola akun admin
-- **Upload Gambar** — Upload dan kelola aset gambar
-- **Kritik & Saran** — Lihat dan hapus masukan dari pengunjung
-
----
-
-## 🛠️ Teknologi yang Digunakan
-
-| Teknologi | Versi | Keterangan |
-|-----------|-------|------------|
-| **PHP** | ^8.2 | Backend language |
-| **Laravel** | ^11.31 | PHP Framework |
-| **MySQL** | - | Database |
-| **Tailwind CSS** | ^3 | CSS Framework |
-| **Vite** | - | Asset Bundler |
-| **Laravel Tinker** | ^2.9 | REPL Tool |
-
----
-
-## 📁 Struktur Proyek
-
-```
-virtual-tour-laravel/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/       # Controller aplikasi
-│   │   └── Middleware/        # AdminAuth & TrackVisitor
-│   ├── Models/                # Eloquent Models
-│   └── Providers/
-├── database/
-│   ├── migrations/            # Skema database
-│   └── seeders/
-├── public/
-│   └── asset/                 # Gambar & aset publik
-├── resources/
-│   ├── css/                   # Stylesheet
-│   ├── js/                    # JavaScript
-│   └── views/                 # Blade templates
-│       ├── admin/             # Halaman admin
-│       ├── layouts/           # Layout utama
-│       └── partials/          # Komponen partial
-└── routes/
-    └── web.php                # Definisi route
-```
-
----
-
-## 🚀 Cara Instalasi
-
-### Prasyarat
-Pastikan sudah terinstall:
-- PHP >= 8.2
-- Composer
-- Node.js & NPM
-- MySQL
-
-### Langkah Instalasi
-
-**1. Clone repository**
 ```bash
 git clone https://github.com/ghilmanfz/Virtual-Tour-University.git
 cd Virtual-Tour-University
-git checkout withlaravel
-```
-
-**2. Install dependensi PHP**
-```bash
 composer install
-```
-
-**3. Install dependensi Node.js**
-```bash
 npm install
 ```
 
-**4. Salin file environment**
-```bash
-cp .env.example .env
-```
-
-**5. Generate application key**
-```bash
-php artisan key:generate
-```
-
----
-
-## ⚙️ Konfigurasi
-
-Edit file `.env` sesuaikan dengan konfigurasi lokal Anda:
+Salin `.env.example` menjadi `.env`, lalu sesuaikan koneksi database:
 
 ```env
-APP_NAME="Virtual Tour University"
-APP_URL=http://localhost
+APP_NAME="Virtual Tour UNPAM"
+APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -155,69 +51,36 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-**Jalankan migrasi database:**
+Siapkan aplikasi dan database:
+
 ```bash
-php artisan migrate
-```
-
-**Jalankan seeder (opsional):**
-```bash
-php artisan db:seed
-```
-
----
-
-## ▶️ Menjalankan Aplikasi
-
-**Build assets (development):**
-```bash
-npm run dev
-```
-
-**Build assets (production):**
-```bash
+php artisan key:generate
+php artisan migrate --seed
 npm run build
 ```
 
-**Jalankan server lokal:**
+Seeder membuat akun awal dengan username `admin` dan password `admin123`. Ganti password tersebut melalui menu Kelola User setelah login pertama.
+
+## Menjalankan aplikasi
+
 ```bash
 php artisan serve
 ```
 
-Akses aplikasi di: `http://localhost:8000`
+Website tersedia di `http://localhost:8000` dan halaman login admin di `http://localhost:8000/login`.
 
----
+Untuk pengembangan aset frontend, jalankan:
 
-## 🔑 Akses Admin
-
-Halaman admin dapat diakses melalui:
-```
-http://localhost:8000/login
+```bash
+npm run dev
 ```
 
-> Buat akun admin melalui seeder atau langsung di database pada tabel `admins`.
+## Struktur utama
 
-Panel admin tersedia di:
-```
-http://localhost:8000/admin/dashboard
-```
-
----
-
-## 📄 Lisensi
-
-Proyek ini dilisensikan di bawah [MIT License](LICENSE).
-
----
-
-<p align="center">
-  Dibuat dengan ❤️ menggunakan <a href="https://laravel.com">Laravel</a>
-</p>
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- `app/Http/Controllers`: alur request untuk halaman publik dan admin.
+- `app/Services`: pengelolaan konten website dan pemrosesan berkas virtual tour.
+- `resources/views`: template Blade.
+- `public/asset`: gambar yang diunggah admin.
+- `public/virtual-tours`: virtual tour umum yang sudah diproses.
+- `public/facility-tours`: virtual tour khusus fasilitas.
+- `database/migrations`: riwayat skema database.

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Admin;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -15,16 +15,18 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $admin = Admin::where('username', $request->username)->first();
+        $admin = Admin::where('username', $validated['username'])->first();
 
-        if ($admin && Hash::check($request->password, $admin->password)) {
+        if ($admin && Hash::check($validated['password'], $admin->password)) {
+            $request->session()->regenerate();
             $request->session()->put('admin_logged_in', true);
             $request->session()->put('admin_id', $admin->id);
+
             return redirect()->route('admin.dashboard', ['tab' => 'dashboard']);
         }
 
@@ -33,7 +35,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->session()->flush();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }

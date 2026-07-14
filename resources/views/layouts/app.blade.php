@@ -11,7 +11,6 @@
 </head>
 <body class="font-sans bg-gray-100" x-data="{ mobileMenuOpen: false }">
 
-    <!-- Navbar -->
     <nav class="navbar fixed w-full z-50 text-white" x-data="{ scrolled: false }"
          x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 50 })"
          :class="{ 'scrolled': scrolled, 'bg-gray-600': {{ request()->routeIs('fasilitas', 'tentang') ? 'true' : 'false' }} }">
@@ -34,7 +33,6 @@
                 <i class="fas fa-bars text-2xl"></i>
             </button>
         </div>
-        <!-- Mobile Menu -->
         <div x-show="mobileMenuOpen" x-transition class="md:hidden bg-blue-700 px-6 py-4 space-y-3">
             <a href="{{ route('home') }}" class="block hover:text-yellow-300">Beranda</a>
             <a href="{{ route('virtual-tour') }}" class="block hover:text-yellow-300">Virtual Tour</a>
@@ -46,7 +44,6 @@
 
     @yield('content')
 
-    <!-- Footer -->
     <footer class="bg-gray-800 text-white py-12">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 justify-items-center text-center">
@@ -91,13 +88,5 @@
     </footer>
 
     @stack('scripts')
-    <script>
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) { navbar.classList.add('scrolled'); }
-            else { navbar.classList.remove('scrolled'); }
-        });
-    </script>
 </body>
 </html>

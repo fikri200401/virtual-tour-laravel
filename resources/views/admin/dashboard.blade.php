@@ -40,7 +40,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100" x-data="{ activeTab: '{{ request('tab', 'dashboard') }}' }">
-    <!-- Header -->
     <header class="bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4">
@@ -80,7 +79,6 @@
             </div>
         @endif
 
-        <!-- Tabs -->
         <div class="bg-white rounded-lg shadow-lg">
             <div class="border-b">
                 <nav class="flex space-x-8 overflow-x-auto">
@@ -103,23 +101,21 @@
                         <i class="fas fa-comments mr-2"></i>Kritik & Saran
                     </button>
                     <button @click="activeTab = 'upload'" :class="activeTab === 'upload' ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'" class="py-4 px-6 whitespace-nowrap">
-                        <i class="fas fa-upload mr-2"></i>Upload Gambar
+                        <i class="fas fa-upload mr-2"></i>Unggah Gambar
                     </button>
                 </nav>
             </div>
 
-            <!-- ==================== Dashboard Tab ==================== -->
             <div x-show="activeTab === 'dashboard'" class="p-6">
                 <h2 class="text-xl font-bold mb-6">Dashboard - Statistik Virtual Tour UNPAM</h2>
 
-                <!-- Statistics Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="bg-blue-500 text-white p-6 rounded-lg shadow-lg">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="text-sm font-medium opacity-90">Total Pengunjung</h3>
                                 <p class="text-2xl font-bold">{{ number_format($stats['total_visitors']) }}</p>
-                                <p class="text-xs opacity-75 mt-1">Unique visitors (non-admin)</p>
+                                <p class="text-xs opacity-75 mt-1">Pengunjung unik selain admin</p>
                             </div>
                             <div class="text-3xl opacity-75"><i class="fas fa-users"></i></div>
                         </div>
@@ -159,7 +155,6 @@
                     </div>
                 </div>
 
-                <!-- Conversion Rate & Quick Actions -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-lg shadow-lg border">
                         <h3 class="text-lg font-semibold mb-4 text-gray-800">
@@ -205,7 +200,7 @@
                                 <i class="fas fa-vr-cardboard mb-1"></i><br>Kelola VR
                             </button>
                             <button @click="activeTab = 'upload'" class="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg text-sm transition-colors">
-                                <i class="fas fa-upload mb-1"></i><br>Upload Gambar
+                                <i class="fas fa-upload mb-1"></i><br>Unggah Gambar
                             </button>
                             <button @click="activeTab = 'content'" class="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-lg text-sm transition-colors">
                                 <i class="fas fa-edit mb-1"></i><br>Edit Konten
@@ -214,7 +209,6 @@
                     </div>
                 </div>
 
-                <!-- Recent Visitors -->
                 <div class="bg-white p-6 rounded-lg shadow-lg border">
                     <h3 class="text-lg font-semibold mb-4 text-gray-800">
                         <i class="fas fa-history mr-2 text-gray-600"></i>Aktivitas Pengunjung Terbaru
@@ -270,7 +264,6 @@
                 </div>
             </div>
 
-            <!-- ==================== Content Management Tab ==================== -->
             <div x-show="activeTab === 'content'" class="p-6">
                 <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -301,26 +294,13 @@
                                     <span class="mt-1 block text-sm font-normal text-gray-500">{{ $group['description'] }}</span>
                                 </span>
                                 <span class="flex shrink-0 items-center gap-3">
-                                    <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ $group['items']->count() }} field</span>
+                                    <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ $group['items']->count() }} kolom</span>
                                     <i class="fas fa-chevron-down text-gray-400 transition-transform" :class="{ 'rotate-180': openSection === @js($sectionKey) }"></i>
                                 </span>
                             </button>
 
                             <div x-show="openSection === @js($sectionKey)" x-transition x-cloak class="border-t border-gray-200">
-                                @if($sectionKey === 'other')
-                                    <div class="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
-                                        @foreach($group['items'] as $content)
-                                            <form action="{{ route('admin.content.update') }}" method="POST" class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                                @csrf
-                                                <input type="hidden" name="content_id" value="{{ $content->id }}">
-                                                <label class="mb-1 block text-sm font-semibold text-gray-800">{{ ucfirst(str_replace('_', ' ', $content->content_key)) }}</label>
-                                                <input type="text" name="content_value" value="{{ $content->content_value }}" class="w-full rounded-md border border-gray-300 px-3 py-2">
-                                                <button type="submit" class="mt-3 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"><i class="fas fa-save mr-1"></i>Simpan</button>
-                                            </form>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <form action="{{ route('admin.content.section.update') }}" method="POST" class="p-5">
+                                <form action="{{ route('admin.content.section.update') }}" method="POST" class="p-5">
                                         @csrf
                                         <input type="hidden" name="section" value="{{ $sectionKey }}">
 
@@ -366,19 +346,16 @@
                                                 <i class="fas fa-save mr-1"></i>Simpan Bagian {{ $group['label'] }}
                                             </button>
                                         </div>
-                                    </form>
-                                @endif
+                                </form>
                             </div>
                         </section>
                     @endforeach
                 </div>
             </div>
 
-            <!-- ==================== Facilities Management Tab ==================== -->
             <div x-show="activeTab === 'facilities'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola Fasilitas</h2>
 
-                <!-- Add New Facility -->
                 <div class="bg-green-50 p-4 rounded-lg mb-6">
                     <h3 class="text-lg font-semibold mb-3">Tambah Fasilitas Baru</h3>
                     <form action="{{ route('admin.facility.add') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -405,7 +382,6 @@
                     </form>
                 </div>
 
-                <!-- Existing Facilities -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @foreach($facilities as $facility)
                         <div class="bg-gray-50 p-4 rounded-lg">
@@ -433,7 +409,7 @@
                                 </div>
                                 <div class="flex space-x-2">
                                     <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded flex-1">
-                                        <i class="fas fa-save mr-1"></i>Update
+                                        <i class="fas fa-save mr-1"></i>Perbarui
                                     </button>
                                 </div>
                             </form>
@@ -459,7 +435,7 @@
                                     <input type="hidden" name="facility_id" value="{{ $facility->id }}">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">
-                                            {{ $facility->virtual_tour_url ? 'Ganti file virtual tour' : 'Upload file virtual tour' }}
+                                            {{ $facility->virtual_tour_url ? 'Ganti berkas virtual tour' : 'Unggah berkas virtual tour' }}
                                         </label>
                                         <input
                                             type="file"
@@ -470,7 +446,7 @@
                                         <p class="mt-1 text-xs text-gray-500">Format: ZIP, RAR, PNG, JPG, atau JPEG. Maksimal 40 MB.</p>
                                     </div>
                                     <button type="submit" class="w-full rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
-                                        <i class="fas fa-upload mr-1"></i>{{ $facility->virtual_tour_url ? 'Ganti Virtual Tour' : 'Upload Virtual Tour' }}
+                                        <i class="fas fa-upload mr-1"></i>{{ $facility->virtual_tour_url ? 'Ganti Virtual Tour' : 'Unggah Virtual Tour' }}
                                     </button>
                                 </form>
 
@@ -502,11 +478,9 @@
                 </div>
             </div>
 
-            <!-- ==================== Users Management Tab ==================== -->
             <div x-show="activeTab === 'users'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola User Admin</h2>
 
-                <!-- Add New User -->
                 <div class="bg-green-50 p-4 rounded-lg mb-6">
                     <h3 class="text-lg font-semibold mb-3">Tambah User Admin Baru</h3>
                     <form action="{{ route('admin.user.add') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -527,7 +501,6 @@
                     </form>
                 </div>
 
-                <!-- Existing Users -->
                 <div class="bg-white rounded-lg">
                     <div class="px-4 py-3 border-b border-gray-200">
                         <h3 class="text-lg font-semibold text-gray-800">Daftar User Admin</h3>
@@ -548,7 +521,7 @@
                                     </div>
                                     <div class="flex space-x-2">
                                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                                            <i class="fas fa-save mr-1"></i>Update
+                                            <i class="fas fa-save mr-1"></i>Perbarui
                                         </button>
                                     </div>
                                 </form>
@@ -579,26 +552,23 @@
                 </div>
             </div>
 
-            <!-- ==================== Virtual Tour Management Tab ==================== -->
             <div x-show="activeTab === 'virtual-tour'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola Virtual Tour</h2>
 
-                <!-- Uploaded Tours Management -->
                 <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-200">
                     <h3 class="text-lg font-semibold mb-3 text-indigo-800">
                         <i class="fas fa-street-view mr-2"></i>Tour Virtual (Embed)
                     </h3>
 
-                    <!-- Upload Tour Form -->
                     <div class="bg-white p-4 rounded-lg mb-4 border">
-                        <h4 class="font-medium mb-3 text-gray-800"><i class="fas fa-upload mr-2 text-indigo-600"></i>Upload Tour Baru</h4>
+                        <h4 class="font-medium mb-3 text-gray-800"><i class="fas fa-upload mr-2 text-indigo-600"></i>Unggah Tour Baru</h4>
                         <form action="{{ route('admin.tour.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lokasi Tour</label>
                                     <input type="text" name="tour_name" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Contoh: Musolah, Parkiran, Gedung A">
-                                    <p class="text-xs text-gray-500 mt-1">Nama akan dijadikan slug untuk URL (spasi → strip)</p>
+                                    <p class="text-xs text-gray-500 mt-1">Nama akan dijadikan slug URL dengan tanda hubung sebagai pemisah.</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">File Virtual Tour</label>
@@ -608,36 +578,12 @@
                                 </div>
                             </div>
                             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition-colors">
-                                <i class="fas fa-cloud-upload-alt mr-1"></i>Upload & Proses Tour
+                                <i class="fas fa-cloud-upload-alt mr-1"></i>Unggah dan Proses Tour
                             </button>
                         </form>
                     </div>
 
-                    <!-- Deployed Tours List -->
-                    @php
-                        $deployedTours = [];
-                        $tourBasePath = public_path('virtual-tours');
-                        if (\Illuminate\Support\Facades\File::isDirectory($tourBasePath)) {
-                            foreach (\Illuminate\Support\Facades\File::directories($tourBasePath) as $dir) {
-                                $dirName = basename($dir);
-                                $hasIndex = \Illuminate\Support\Facades\File::exists($dir . '/index.htm') || \Illuminate\Support\Facades\File::exists($dir . '/index.html');
-                                $fileCount = count(\Illuminate\Support\Facades\File::allFiles($dir));
-                                $sizeBytes = 0;
-                                foreach (\Illuminate\Support\Facades\File::allFiles($dir) as $file) {
-                                    $sizeBytes += $file->getSize();
-                                }
-                                $deployedTours[] = [
-                                    'name' => ucfirst(str_replace(['-', '_'], ' ', $dirName)),
-                                    'slug' => $dirName,
-                                    'has_index' => $hasIndex,
-                                    'file_count' => $fileCount,
-                                    'size_mb' => round($sizeBytes / 1024 / 1024, 1),
-                                ];
-                            }
-                        }
-                    @endphp
-
-                    <h4 class="font-medium mb-2 text-gray-800"><i class="fas fa-list mr-2 text-indigo-600"></i>Tour yang Ter-deploy</h4>
+                    <h4 class="font-medium mb-2 text-gray-800"><i class="fas fa-list mr-2 text-indigo-600"></i>Tour yang Terpasang</h4>
                     @if(count($deployedTours) > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         @foreach($deployedTours as $tour)
@@ -645,7 +591,7 @@
                             <div>
                                 <span class="font-medium text-gray-800">{{ $tour['name'] }}</span>
                                 <div class="text-xs text-gray-500 mt-0.5">
-                                    {{ $tour['file_count'] }} files &bull; {{ $tour['size_mb'] }} MB
+                                    {{ $tour['file_count'] }} berkas &bull; {{ $tour['size_mb'] }} MB
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
@@ -655,7 +601,7 @@
                                     </span>
                                 @else
                                     <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
-                                        <i class="fas fa-exclamation-circle mr-1"></i>Error
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Bermasalah
                                     </span>
                                 @endif
                                 <form action="{{ route('admin.tour.delete') }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tour {{ $tour['name'] }}? Semua file tour akan dihapus permanen.')">
@@ -671,20 +617,19 @@
                     </div>
                     @else
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center text-yellow-800 text-sm mb-3">
-                        <i class="fas fa-inbox mr-1"></i> Belum ada tour yang di-deploy. Upload file virtual tour di atas untuk memulai.
+                        <i class="fas fa-inbox mr-1"></i> Belum ada tour yang terpasang. Unggah berkas virtual tour di atas untuk memulai.
                     </div>
                     @endif
                 </div>
 
             </div>
 
-            <!-- ==================== Kritik & Saran Tab ==================== -->
             <div x-show="activeTab === 'kritik-saran'" class="p-6">
                 <h2 class="text-xl font-bold mb-4">Kelola Kritik & Saran</h2>
 
                 <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-lg mb-6">
                     <h3 class="text-lg font-semibold text-indigo-800 mb-3">Pengaturan Telegram Notifikasi</h3>
-                    <p class="text-sm text-indigo-700 mb-4">Atur token bot dan chat ID di sini. Kosongkan salah satu field jika ingin menonaktifkan notifikasi Telegram. Untuk Token Bot didapat dari @BotFather di Telegram. untuk Chat id didapat dari @userinfobot di Telegram.</p>
+                    <p class="text-sm text-indigo-700 mb-4">Masukkan token bot dan chat ID untuk mengaktifkan notifikasi. Kosongkan salah satunya jika notifikasi tidak digunakan. Token bot tersedia melalui @BotFather, sedangkan chat ID dapat dilihat melalui @userinfobot di Telegram.</p>
                     <form action="{{ route('admin.kritik.telegram.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @csrf
                         <div>
@@ -748,7 +693,7 @@
                                             <i class="fas fa-trash mr-2"></i>Hapus
                                         </button>
                                     </form>
-                                    <button onclick="navigator.clipboard.writeText('{{ addslashes($kritik->pesan) }}').then(() => alert('Pesan berhasil disalin!'))" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center transition-colors">
+                                    <button data-message="{{ $kritik->pesan }}" onclick="navigator.clipboard.writeText(this.dataset.message).then(() => alert('Pesan berhasil disalin.'))" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded flex items-center transition-colors">
                                         <i class="fas fa-copy mr-2"></i>Copy
                                     </button>
                                 </div>
@@ -773,13 +718,11 @@
                 @endif
             </div>
 
-            <!-- ==================== Upload Tab ==================== -->
             <div x-show="activeTab === 'upload'" class="p-6">
-                <h2 class="text-xl font-bold mb-4">Upload dan Kelola Gambar</h2>
+                <h2 class="text-xl font-bold mb-4">Unggah dan Kelola Gambar</h2>
 
-                <!-- Upload Form -->
                 <div class="bg-blue-50 p-4 rounded-lg mb-6">
-                    <h3 class="text-lg font-semibold mb-3">Upload Gambar Baru</h3>
+                    <h3 class="text-lg font-semibold mb-3">Unggah Gambar Baru</h3>
                     <form action="{{ route('admin.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                         @csrf
                         <div>
@@ -788,12 +731,11 @@
                             <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG, GIF, WEBP. Maksimal 5MB.</p>
                         </div>
                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                            <i class="fas fa-upload mr-1"></i>Upload Gambar
+                            <i class="fas fa-upload mr-1"></i>Unggah Gambar
                         </button>
                     </form>
                 </div>
 
-                <!-- Image Gallery -->
                 <div class="bg-yellow-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold mb-3">Gambar yang Tersedia</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -810,7 +752,6 @@
                                     </form>
                                 </div>
 
-                                <!-- Image Preview Modal -->
                                 <div x-show="preview" x-transition class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center" @click.self="preview = false" @keydown.escape.window="preview = false">
                                     <div class="max-w-4xl p-4">
                                         <img src="{{ asset($image) }}" alt="{{ basename($image) }}" class="max-w-full max-h-screen object-contain">

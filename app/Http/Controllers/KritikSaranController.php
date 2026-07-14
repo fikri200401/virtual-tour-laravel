@@ -2,46 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\KritikSaran;
 use App\Models\Content;
+use App\Models\KritikSaran;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class KritikSaranController extends Controller
 {
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama' => 'required|string|max:100',
             'kontak' => 'required|string|max:100',
             'pesan' => 'required|string',
         ]);
 
-        KritikSaran::create([
-            'nama' => $request->nama,
-            'kontak' => $request->kontak,
-            'pesan' => $request->pesan,
-        ]);
+        KritikSaran::create($validated);
 
-        $telegramSettings = Content::whereIn('content_key', ['telegram_bot_token', 'telegram_chat_id'])
+        $settings = Content::whereIn('content_key', ['telegram_bot_token', 'telegram_chat_id'])
             ->pluck('content_value', 'content_key');
-
-        // Prefer admin settings from database, fallback to .env config.
-        $token = $telegramSettings->get('telegram_bot_token') ?: config('services.telegram.bot_token');
-        $chatId = $telegramSettings->get('telegram_chat_id') ?: config('services.telegram.chat_id');
+        $token = $settings->get('telegram_bot_token') ?: config('services.telegram.bot_token');
+        $chatId = $settings->get('telegram_chat_id') ?: config('services.telegram.chat_id');
 
         if ($token && $chatId) {
-            $text = "📩 KRITIK & SARAN BARU\n\n👤 Nama: {$request->nama}\n📧 Email/HP: {$request->kontak}\n📝 Pesan: {$request->pesan}";
+            $message = "KRITIK & SARAN BARU\n\nNama: {$validated['nama']}\nEmail/HP: {$validated['kontak']}\nPesan: {$validated['pesan']}";
+
             try {
                 Http::get("https://api.telegram.org/bot{$token}/sendMessage", [
                     'chat_id' => $chatId,
-                    'text' => $text,
+                    'text' => $message,
                 ]);
-            } catch (\Throwable $e) {
-                report($e);
+            } catch (Throwable $exception) {
+                report($exception);
             }
         }
 
-        return redirect()->route('home')->with('success', 'Pesan berhasil dikirim!');
+        return redirect()->route('home')->with('success', 'Pesan berhasil dikirim.');
     }
 }

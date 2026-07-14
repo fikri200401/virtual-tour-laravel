@@ -15,14 +15,23 @@ use ZipArchive;
 
 class VirtualTourUploadService
 {
+    public const MAX_UPLOAD_KB = 40960;
+
+    public const SUPPORTED_EXTENSIONS = ['zip', 'rar', 'png', 'jpg', 'jpeg'];
+
     private const MAX_EXTRACTED_FILES = 20000;
 
-    private const MAX_EXTRACTED_BYTES = 1073741824; // 1 GB
+    private const MAX_EXTRACTED_BYTES = 1073741824;
 
     private const BLOCKED_EXTENSIONS = [
         'asp', 'aspx', 'cgi', 'htaccess', 'jsp', 'phar', 'php', 'php3',
         'php4', 'php5', 'phtml', 'pl', 'py', 'sh',
     ];
+
+    public function supports(UploadedFile $file): bool
+    {
+        return in_array(strtolower($file->getClientOriginalExtension()), self::SUPPORTED_EXTENSIONS, true);
+    }
 
     public function deploy(UploadedFile $file, string $tourDir, string $tourName): string
     {
