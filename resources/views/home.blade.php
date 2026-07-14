@@ -44,7 +44,7 @@
             <p class="mx-auto mb-16 max-w-2xl text-center text-gray-700">{{ $content['facilities_description'] }}</p>
             <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 @forelse($facilities as $facility)
-                    <div class="facility-card overflow-hidden rounded-lg bg-white shadow-md transition duration-300">
+                    <a href="{{ route('fasilitas') }}" aria-label="Lihat fasilitas {{ $facility->name }}" class="facility-card block overflow-hidden rounded-lg bg-white shadow-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <div class="h-48 overflow-hidden">
                             <img src="{{ asset($facility->image ?? 'asset/default.jpg') }}" alt="{{ $facility->name }}" class="h-full w-full object-cover">
                         </div>
@@ -52,7 +52,7 @@
                             <h3 class="mb-2 text-xl font-semibold">{{ $facility->name }}</h3>
                             <p class="text-gray-600">{{ $facility->description }}</p>
                         </div>
-                    </div>
+                    </a>
                 @empty
                     <div class="col-span-full rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center text-yellow-700">
                         Belum ada data fasilitas. Tambahkan fasilitas dari dashboard admin.

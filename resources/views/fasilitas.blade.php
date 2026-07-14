@@ -7,7 +7,7 @@
         $tourFacilities = $facilities
             ->filter(fn ($facility) => filled($facility->virtual_tour_url))
             ->values();
-        $firstTourFacility = $tourFacilities->first();
+        $hasFacilityTours = $tourFacilities->isNotEmpty();
     @endphp
 
     @push('styles')
@@ -86,6 +86,11 @@
                 border-radius: 1rem;
                 background: #0f172a;
                 box-shadow: 0 25px 50px rgba(15, 23, 42, .24);
+            }
+
+            .facility-tour-modal-panel {
+                max-height: calc(100vh - 2rem);
+                overflow-y: auto;
             }
 
             .facility-tour-viewer iframe {
@@ -181,7 +186,7 @@
                         @if($tourUrl)
                             :class="{ 'active': activeFacility === {{ $facility->id }} }"
                             :aria-pressed="activeFacility === {{ $facility->id }}"
-                            @click="loadTour({{ $facility->id }}, @js($tourUrl), @js($facility->name))"
+                            @click="openTour({{ $facility->id }}, @js($tourUrl), @js($facility->name))"
                         @else
                             disabled
                             aria-disabled="true"
@@ -203,46 +208,56 @@
                 @endforelse
             </div>
 
-            @if($firstTourFacility)
-                <div class="mx-auto mt-12 max-w-6xl" x-cloak>
-                    <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <p class="text-sm font-semibold uppercase tracking-wider text-blue-600">Virtual Tour Fasilitas</p>
-                            <h3 class="text-2xl font-bold text-gray-900" x-text="activeFacilityName"></h3>
-                        </div>
-                        <p class="text-sm text-gray-500">Klik dan geser tampilan untuk melihat ke segala arah.</p>
-                    </div>
-
-                    <div class="facility-tour-viewer" :class="{ 'fullscreen': isFullscreen }">
-                        <div class="facility-tour-loading" :class="{ 'hidden': !isLoading }">
-                            <div class="text-center">
-                                <div class="facility-tour-spinner mx-auto mb-4"></div>
-                                <p class="text-sm">Memuat virtual tour fasilitas...</p>
+            @if($hasFacilityTours)
+                <div
+                    x-show="isModalOpen"
+                    x-transition.opacity
+                    x-cloak
+                    class="fixed inset-0 flex items-center justify-center bg-slate-950/80 p-4"
+                    style="z-index: 100;"
+                    role="dialog"
+                    aria-modal="true"
+                    :aria-label="'Virtual Tour ' + activeFacilityName"
+                    @click.self="closeTour()">
+                    <div x-show="isModalOpen" x-transition class="facility-tour-modal-panel w-full max-w-6xl rounded-2xl bg-white shadow-2xl">
+                        <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Virtual Tour Fasilitas</p>
+                                <h3 class="text-xl font-bold text-gray-900" x-text="activeFacilityName"></h3>
                             </div>
+                            <button x-ref="closeButton" type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200" aria-label="Tutup virtual tour" @click="closeTour()">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
 
-                        <iframe
-                            :src="currentTourUrl"
-                            :title="'Virtual Tour ' + activeFacilityName"
-                            allowfullscreen
-                            allow="gyroscope; accelerometer; xr-spatial-tracking"
-                            @load="onIframeLoaded()">
-                        </iframe>
+                        <div class="p-4 sm:p-6">
+                            <div class="facility-tour-viewer" :class="{ 'fullscreen': isFullscreen }">
+                                <div class="facility-tour-loading" :class="{ 'hidden': !isLoading }">
+                                    <div class="text-center">
+                                        <div class="facility-tour-spinner mx-auto mb-4"></div>
+                                        <p class="text-sm">Memuat virtual tour fasilitas...</p>
+                                    </div>
+                                </div>
 
-                        <button type="button" class="facility-fullscreen-button" @click="toggleFullscreen()">
-                            <i :class="isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
-                            <span class="ml-1" x-text="isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen'"></span>
-                        </button>
-                    </div>
+                                <template x-if="currentTourUrl">
+                                    <iframe
+                                        :src="currentTourUrl"
+                                        :title="'Virtual Tour ' + activeFacilityName"
+                                        allowfullscreen
+                                        allow="gyroscope; accelerometer; xr-spatial-tracking"
+                                        @load="onIframeLoaded()">
+                                    </iframe>
+                                </template>
 
-                    <div class="mt-8 rounded-xl border border-blue-100 bg-blue-50 p-6">
-                        <h4 class="mb-3 font-semibold text-gray-900">
-                            <i class="fas fa-info-circle mr-2 text-blue-600"></i>Cara Menggunakan Virtual Tour Fasilitas
-                        </h4>
-                        <div class="grid gap-3 text-sm text-gray-700 md:grid-cols-3">
-                            <p><i class="fas fa-hand-pointer mr-2 text-blue-600"></i>Pilih kartu fasilitas di atas.</p>
-                            <p><i class="fas fa-mouse-pointer mr-2 text-blue-600"></i>Klik dan geser panorama 360&deg;.</p>
-                            <p><i class="fas fa-expand mr-2 text-blue-600"></i>Gunakan fullscreen untuk tampilan terbaik.</p>
+                                <button type="button" class="facility-fullscreen-button" @click="toggleFullscreen()">
+                                    <i :class="isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
+                                    <span class="ml-1" x-text="isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen'"></span>
+                                </button>
+                            </div>
+
+                            <p class="mt-4 text-sm text-gray-500">
+                                <i class="fas fa-mouse-pointer mr-2 text-blue-600"></i>Klik dan geser panorama untuk melihat ke segala arah.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -264,16 +279,28 @@
                     activeFacility: null,
                     activeFacilityName: '',
                     currentTourUrl: '',
+                    isModalOpen: false,
                     isFullscreen: false,
                     isLoading: false,
 
-                    loadTour(facilityId, url, name) {
-                        if (this.activeFacility === facilityId && this.currentTourUrl === url) return;
-
+                    openTour(facilityId, url, name) {
                         this.activeFacility = facilityId;
                         this.activeFacilityName = name;
                         this.isLoading = true;
                         this.currentTourUrl = url;
+                        this.isModalOpen = true;
+                        document.body.style.overflow = 'hidden';
+                        this.$nextTick(() => this.$refs.closeButton?.focus());
+                    },
+
+                    closeTour() {
+                        this.isModalOpen = false;
+                        this.isFullscreen = false;
+                        this.isLoading = false;
+                        this.currentTourUrl = '';
+                        this.activeFacility = null;
+                        this.activeFacilityName = '';
+                        document.body.style.overflow = '';
                     },
 
                     onIframeLoaded() {
@@ -282,26 +309,18 @@
 
                     toggleFullscreen() {
                         this.isFullscreen = !this.isFullscreen;
-                        document.body.style.overflow = this.isFullscreen ? 'hidden' : '';
                     },
 
                     init() {
                         document.addEventListener('keydown', (event) => {
-                            if (event.key === 'Escape' && this.isFullscreen) {
+                            if (event.key !== 'Escape') return;
+
+                            if (this.isFullscreen) {
                                 this.isFullscreen = false;
-                                document.body.style.overflow = '';
+                            } else if (this.isModalOpen) {
+                                this.closeTour();
                             }
                         });
-
-                        @if($firstTourFacility)
-                            this.$nextTick(() => {
-                                this.loadTour(
-                                    {{ $firstTourFacility->id }},
-                                    @js($firstTourFacility->virtual_tour_url),
-                                    @js($firstTourFacility->name)
-                                );
-                            });
-                        @endif
                     }
                 };
             }
