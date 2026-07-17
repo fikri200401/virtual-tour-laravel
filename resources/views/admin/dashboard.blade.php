@@ -573,7 +573,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">File Virtual Tour</label>
                                     <input type="file" name="tour_file" accept=".zip,.rar,.png,.jpg,.jpeg,.webp" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    <p class="text-xs text-gray-500 mt-1">Format: ZIP/RAR hasil export virtual tour, atau gambar panorama PNG/JPG/JPEG/WEBP. Maksimal 40MB.</p>
+                                    <p class="text-xs text-gray-500 mt-1">Format: ZIP/RAR hasil export virtual tour, atau gambar panorama PNG/JPG/JPEG/WEBP. Maksimal 160MB.</p>
                                     <p class="text-xs text-amber-600 mt-1">Untuk hasil terbaik, gambar panorama menggunakan rasio equirectangular 2:1.</p>
                                 </div>
                             </div>
