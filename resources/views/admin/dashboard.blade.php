@@ -443,7 +443,7 @@
                                             accept=".zip,.rar,.png,.jpg,.jpeg,.webp"
                                             required
                                             class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm">
-                                        <p class="mt-1 text-xs text-gray-500">Format: ZIP, RAR, PNG, JPG, JPEG, atau WEBP. Maksimal 80 MB.</p>
+                                        <p class="mt-1 text-xs text-gray-500">Format: ZIP, RAR, PNG, JPG, JPEG, atau WEBP. Maksimal 160 MB.</p>
                                     </div>
                                     <button type="submit" class="w-full rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
                                         <i class="fas fa-upload mr-1"></i>{{ $facility->virtual_tour_url ? 'Ganti Virtual Tour' : 'Unggah Virtual Tour' }}

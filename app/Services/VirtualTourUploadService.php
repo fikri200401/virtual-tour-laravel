@@ -15,7 +15,7 @@ use ZipArchive;
 
 class VirtualTourUploadService
 {
-    public const MAX_UPLOAD_KB = 81920;
+    public const MAX_UPLOAD_KB = 163840;
 
     public const SUPPORTED_EXTENSIONS = ['zip', 'rar', 'png', 'jpg', 'jpeg', 'webp'];
 
