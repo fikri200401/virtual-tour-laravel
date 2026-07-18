@@ -3,6 +3,11 @@
 @section('content')
     @push('styles')
         <style>
+            .tour-modal-panel {
+                max-height: calc(100vh - 2rem);
+                overflow-y: auto;
+            }
+
             .tour-iframe-container {
                 position: relative;
                 width: 100%;
@@ -82,77 +87,122 @@
         </style>
     @endpush
 
-    <section id="home" class="hero-section flex h-screen items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url('{{ $content['vr_background_image_url'] }}');">
-        <div class="px-4 text-center">
-            <h1 class="mb-6 text-4xl font-bold md:text-6xl">{{ $content['vr_title'] }}</h1>
-            <h2 class="mb-8 text-3xl font-bold md:text-5xl">{{ $content['vr_subtitle'] }}</h2>
-            <p class="mx-auto mb-10 max-w-3xl text-xl">{{ $content['vr_description'] }}</p>
-            <button type="button" onclick="document.getElementById('{{ $virtualTour ? 'tourViewer' : 'tour' }}')?.scrollIntoView({ behavior: 'smooth', block: 'start' })" class="mt-8 inline-flex items-center rounded-full bg-yellow-500 px-8 py-3 font-medium text-white transition duration-300 hover:bg-yellow-600">
-                <i class="fas fa-vr-cardboard mr-2"></i>Mulai Tour
-            </button>
-        </div>
-    </section>
+    <div x-data="virtualTourModal()" @keydown.escape.window="handleEscape()">
+        <section id="home" class="hero-section flex h-screen items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url('{{ $content['vr_background_image_url'] }}');">
+            <div class="px-4 text-center">
+                <h1 class="mb-6 text-4xl font-bold md:text-6xl">{{ $content['vr_title'] }}</h1>
+                <h2 class="mb-8 text-3xl font-bold md:text-5xl">{{ $content['vr_subtitle'] }}</h2>
+                <p class="mx-auto mb-10 max-w-3xl text-xl">{{ $content['vr_description'] }}</p>
 
-    <section
-        id="tour"
-        class="bg-gradient-to-b from-gray-50 to-white py-16"
-        x-data="{
-            isFullscreen: false,
-            isLoading: true,
-            toggleFullscreen() {
-                this.isFullscreen = !this.isFullscreen;
-                document.body.style.overflow = this.isFullscreen ? 'hidden' : '';
-            },
-            exitFullscreen() {
-                this.isFullscreen = false;
-                document.body.style.overflow = '';
-            }
-        }"
-        @keydown.escape.window="if (isFullscreen) exitFullscreen()">
-        <div class="container mx-auto px-6">
-            <div class="mx-auto mb-8 max-w-3xl text-center">
-                <h2 class="mb-3 text-3xl font-bold text-gray-800">{{ $content['vr_section_title'] }}</h2>
-                <p class="text-gray-600">{{ $content['vr_section_description'] }}</p>
+                @if($virtualTour)
+                    <button x-ref="openButton" type="button" @click="openTour(@js($virtualTour['url']))" class="mt-8 inline-flex items-center rounded-full bg-yellow-500 px-8 py-3 font-medium text-white transition duration-300 hover:bg-yellow-600">
+                        <i class="fas fa-vr-cardboard mr-2"></i>Mulai Tour
+                    </button>
+                @else
+                    <button type="button" disabled class="mt-8 inline-flex cursor-not-allowed items-center rounded-full bg-gray-500 px-8 py-3 font-medium text-white opacity-75">
+                        <i class="fas fa-exclamation-circle mr-2"></i>Tour Belum Tersedia
+                    </button>
+                @endif
             </div>
+        </section>
 
-            @if($virtualTour)
-                <div id="tourViewer" class="tour-iframe-container mx-auto max-w-6xl scroll-mt-4" :class="{ 'fullscreen': isFullscreen }">
-                    <div class="tour-loading" :class="{ 'hidden': !isLoading }">
-                        <div class="text-center">
-                            <div class="spinner mx-auto mb-4"></div>
-                            <p class="text-sm text-slate-400">Memuat Virtual Tour...</p>
+        @if($virtualTour)
+            <div
+                x-show="isModalOpen"
+                x-transition.opacity
+                x-cloak
+                class="fixed inset-0 flex items-center justify-center bg-slate-950/80 p-4"
+                style="z-index: 100;"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Virtual Tour Utama"
+                @click.self="closeTour()">
+                <div x-show="isModalOpen" x-transition class="tour-modal-panel w-full max-w-6xl rounded-2xl bg-white shadow-2xl">
+                    <div class="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Virtual Tour Utama</p>
+                            <h2 class="text-xl font-bold text-gray-900">{{ $content['vr_section_title'] }}</h2>
                         </div>
+                        <button x-ref="closeButton" type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200" aria-label="Tutup virtual tour" @click="closeTour()">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
 
-                    <iframe
-                        src="{{ $virtualTour['url'] }}"
-                        title="Virtual Tour Utama"
-                        allowfullscreen
-                        allow="gyroscope; accelerometer; xr-spatial-tracking"
-                        @load="isLoading = false">
-                    </iframe>
+                    <div class="p-4 sm:p-6">
+                        <div class="tour-iframe-container" :class="{ 'fullscreen': isFullscreen }">
+                            <div class="tour-loading" :class="{ 'hidden': !isLoading }">
+                                <div class="text-center">
+                                    <div class="spinner mx-auto mb-4"></div>
+                                    <p class="text-sm text-slate-400">Memuat Virtual Tour...</p>
+                                </div>
+                            </div>
 
-                    <button type="button" class="btn-fullscreen" @click="toggleFullscreen()">
-                        <i :class="isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
-                        <span class="ml-1" x-text="isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen'"></span>
-                    </button>
-                </div>
+                            <template x-if="currentTourUrl">
+                                <iframe
+                                    :src="currentTourUrl"
+                                    title="Virtual Tour Utama"
+                                    allowfullscreen
+                                    allow="gyroscope; accelerometer; xr-spatial-tracking"
+                                    @load="isLoading = false">
+                                </iframe>
+                            </template>
 
-                <div class="mx-auto mt-8 max-w-6xl rounded-lg bg-blue-50 p-6">
-                    <h3 class="mb-2 text-lg font-semibold"><i class="fas fa-info-circle mr-2 text-blue-600"></i>Cara Menggunakan Virtual Tour</h3>
-                    <ul class="space-y-2 text-gray-700">
-                        <li><i class="fas fa-mouse-pointer mr-2"></i>Klik dan geser atau sentuh layar untuk melihat ke segala arah</li>
-                        <li><i class="fas fa-hand-pointer mr-2"></i>Gunakan tombol navigasi di dalam tur untuk berpindah lokasi</li>
-                        <li><i class="fas fa-expand mr-2"></i>Gunakan tombol fullscreen untuk tampilan yang lebih luas</li>
-                    </ul>
+                            <button type="button" class="btn-fullscreen" @click="toggleFullscreen()">
+                                <i :class="isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
+                                <span class="ml-1" x-text="isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen'"></span>
+                            </button>
+                        </div>
+
+                        <p class="mt-4 text-sm text-gray-500">
+                            <i class="fas fa-mouse-pointer mr-2 text-blue-600"></i>{{ $content['vr_section_description'] }}
+                        </p>
+                    </div>
                 </div>
-            @else
-                <div class="mx-auto max-w-3xl rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center text-yellow-800">
-                    <i class="fas fa-exclamation-circle mr-2"></i>Virtual tour belum tersedia. Admin dapat memasangnya melalui panel Virtual Tour.
-                </div>
-            @endif
-        </div>
-    </section>
+            </div>
+        @endif
+    </div>
 
     @include('partials.contact')
+
+    @push('scripts')
+        <script>
+            function virtualTourModal() {
+                return {
+                    currentTourUrl: '',
+                    isModalOpen: false,
+                    isFullscreen: false,
+                    isLoading: false,
+
+                    openTour(url) {
+                        this.currentTourUrl = url;
+                        this.isLoading = true;
+                        this.isModalOpen = true;
+                        document.body.style.overflow = 'hidden';
+                        this.$nextTick(() => this.$refs.closeButton?.focus());
+                    },
+
+                    closeTour() {
+                        this.isModalOpen = false;
+                        this.isFullscreen = false;
+                        this.isLoading = false;
+                        this.currentTourUrl = '';
+                        document.body.style.overflow = '';
+                        this.$nextTick(() => this.$refs.openButton?.focus());
+                    },
+
+                    toggleFullscreen() {
+                        this.isFullscreen = !this.isFullscreen;
+                    },
+
+                    handleEscape() {
+                        if (this.isFullscreen) {
+                            this.isFullscreen = false;
+                        } else if (this.isModalOpen) {
+                            this.closeTour();
+                        }
+                    }
+                };
+            }
+        </script>
+    @endpush
 @endsection
