@@ -557,68 +557,56 @@
 
                 <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg mb-6 border border-indigo-200">
                     <h3 class="text-lg font-semibold mb-3 text-indigo-800">
-                        <i class="fas fa-street-view mr-2"></i>Tour Virtual (Embed)
+                        <i class="fas fa-street-view mr-2"></i>Virtual Tour Utama
                     </h3>
+                    <p class="mb-4 text-sm text-indigo-700">Halaman Virtual Tour hanya menampilkan satu tur. Unggah file baru untuk memasang atau mengganti tur utama.</p>
 
                     <div class="bg-white p-4 rounded-lg mb-4 border">
-                        <h4 class="font-medium mb-3 text-gray-800"><i class="fas fa-upload mr-2 text-indigo-600"></i>Unggah Tour Baru</h4>
-                        <form action="{{ route('admin.tour.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                        <h4 class="font-medium mb-3 text-gray-800">
+                            <i class="fas fa-upload mr-2 text-indigo-600"></i>{{ $deployedTour ? 'Ganti Virtual Tour' : 'Pasang Virtual Tour' }}
+                        </h4>
+                        <form action="{{ route('admin.tour.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4" @if($deployedTour) onsubmit="return confirm('Ganti virtual tour yang sedang terpasang?')" @endif>
                             @csrf
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lokasi Tour</label>
-                                    <input type="text" name="tour_name" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Contoh: Musolah, Parkiran, Gedung A">
-                                    <p class="text-xs text-gray-500 mt-1">Nama akan dijadikan slug URL dengan tanda hubung sebagai pemisah.</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">File Virtual Tour</label>
-                                    <input type="file" name="tour_file" accept=".zip,.rar,.png,.jpg,.jpeg,.webp" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                                    <p class="text-xs text-gray-500 mt-1">Format: ZIP/RAR hasil export virtual tour, atau gambar panorama PNG/JPG/JPEG/WEBP. Maksimal 160MB.</p>
-                                    <p class="text-xs text-amber-600 mt-1">Untuk hasil terbaik, gambar panorama menggunakan rasio equirectangular 2:1.</p>
-                                </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">File Virtual Tour</label>
+                                <input type="file" name="tour_file" accept=".zip,.rar,.png,.jpg,.jpeg,.webp" required class="w-full border border-gray-300 rounded-md px-3 py-2">
+                                <p class="text-xs text-gray-500 mt-1">Format: ZIP/RAR hasil export virtual tour, atau gambar panorama PNG/JPG/JPEG/WEBP. Maksimal 160MB.</p>
+                                <p class="text-xs text-amber-600 mt-1">Untuk hasil terbaik, gambar panorama menggunakan rasio equirectangular 2:1.</p>
                             </div>
                             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition-colors">
-                                <i class="fas fa-cloud-upload-alt mr-1"></i>Unggah dan Proses Tour
+                                <i class="fas fa-cloud-upload-alt mr-1"></i>{{ $deployedTour ? 'Ganti Virtual Tour' : 'Pasang Virtual Tour' }}
                             </button>
                         </form>
                     </div>
 
-                    <h4 class="font-medium mb-2 text-gray-800"><i class="fas fa-list mr-2 text-indigo-600"></i>Tour yang Terpasang</h4>
-                    @if(count($deployedTours) > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        @foreach($deployedTours as $tour)
-                        <div class="bg-white p-3 rounded-lg border flex items-center justify-between">
+                    <h4 class="font-medium mb-2 text-gray-800"><i class="fas fa-info-circle mr-2 text-indigo-600"></i>Status Virtual Tour</h4>
+                    @if($deployedTour)
+                        <div class="bg-white p-3 rounded-lg border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <span class="font-medium text-gray-800">{{ $tour['name'] }}</span>
+                                <span class="font-medium text-gray-800">{{ $deployedTour['name'] }}</span>
                                 <div class="text-xs text-gray-500 mt-0.5">
-                                    {{ $tour['file_count'] }} berkas &bull; {{ $tour['size_mb'] }} MB
+                                    {{ $deployedTour['file_count'] }} berkas &bull; {{ $deployedTour['size_mb'] }} MB
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
-                                @if($tour['has_index'])
-                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                                        <i class="fas fa-check-circle mr-1"></i>Aktif
-                                    </span>
-                                @else
-                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
-                                        <i class="fas fa-exclamation-circle mr-1"></i>Bermasalah
-                                    </span>
-                                @endif
-                                <form action="{{ route('admin.tour.delete') }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus tour {{ $tour['name'] }}? Semua file tour akan dihapus permanen.')">
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                    <i class="fas fa-check-circle mr-1"></i>Aktif
+                                </span>
+                                <a href="{{ $deployedTour['url'] }}" target="_blank" rel="noopener" class="bg-slate-600 hover:bg-slate-700 text-white px-2 py-1 rounded text-xs transition-colors" aria-label="Lihat virtual tour">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <form action="{{ route('admin.tour.delete') }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus virtual tour utama? Semua file tour akan dihapus permanen.')">
                                     @csrf
-                                    <input type="hidden" name="tour_slug" value="{{ $tour['slug'] }}">
                                     <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
                             </div>
                         </div>
-                        @endforeach
-                    </div>
                     @else
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center text-yellow-800 text-sm mb-3">
-                        <i class="fas fa-inbox mr-1"></i> Belum ada tour yang terpasang. Unggah berkas virtual tour di atas untuk memulai.
-                    </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center text-yellow-800 text-sm mb-3">
+                            <i class="fas fa-inbox mr-1"></i>Belum ada virtual tour yang terpasang.
+                        </div>
                     @endif
                 </div>
 

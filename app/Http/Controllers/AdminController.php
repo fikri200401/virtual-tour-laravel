@@ -8,6 +8,7 @@ use App\Models\Facility;
 use App\Models\KritikSaran;
 use App\Models\VisitorStat;
 use App\Services\WebsiteContentService;
+use App\Services\VirtualTourUploadService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 
@@ -15,7 +16,7 @@ class AdminController extends Controller
 {
     private const TELEGRAM_KEYS = ['telegram_bot_token', 'telegram_chat_id'];
 
-    public function dashboard()
+    public function dashboard(VirtualTourUploadService $tourUploader)
     {
         $contentDefinitions = WebsiteContentService::definitions();
         $contentGroups = $this->contentGroups($contentDefinitions);
@@ -29,7 +30,7 @@ class AdminController extends Controller
             ->limit(10)
             ->get();
         $images = $this->imagePaths();
-        $deployedTours = $this->deployedTours();
+        $deployedTour = $tourUploader->installedTour();
 
         return view('admin.dashboard', compact(
             'contentDefinitions',
@@ -41,7 +42,7 @@ class AdminController extends Controller
             'stats',
             'recentVisitors',
             'images',
-            'deployedTours'
+            'deployedTour'
         ));
     }
 
@@ -115,27 +116,4 @@ class AdminController extends Controller
             ->all();
     }
 
-    private function deployedTours(): array
-    {
-        $tourPath = public_path('virtual-tours');
-        if (! File::isDirectory($tourPath)) {
-            return [];
-        }
-
-        return collect(File::directories($tourPath))
-            ->map(function (string $directory) {
-                $slug = basename($directory);
-                $files = File::allFiles($directory);
-
-                return [
-                    'name' => ucfirst(str_replace(['-', '_'], ' ', $slug)),
-                    'slug' => $slug,
-                    'has_index' => File::isFile($directory.'/index.htm') || File::isFile($directory.'/index.html'),
-                    'file_count' => count($files),
-                    'size_mb' => round(collect($files)->sum(fn ($file) => $file->getSize()) / 1024 / 1024, 1),
-                ];
-            })
-            ->values()
-            ->all();
-    }
 }

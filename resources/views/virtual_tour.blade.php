@@ -2,291 +2,157 @@
 
 @section('content')
     @push('styles')
-    <style>
-        .tour-card {
-            position: relative;
-            overflow: hidden;
-            border-radius: 1rem;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 2px solid transparent;
-        }
-        .tour-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
-        .tour-card.active {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-        .tour-card .tour-icon {
-            font-size: 2.5rem;
-            color: #60a5fa;
-            transition: transform 0.3s ease, color 0.3s ease;
-        }
-        .tour-card:hover .tour-icon,
-        .tour-card.active .tour-icon {
-            transform: scale(1.15);
-            color: #93c5fd;
-        }
-        .tour-card .tour-label {
-            font-weight: 600;
-            color: #e2e8f0;
-            font-size: 1.05rem;
-            transition: color 0.3s ease;
-        }
-        .tour-card:hover .tour-label,
-        .tour-card.active .tour-label {
-            color: #ffffff;
-        }
-        .tour-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            transition: left 0.5s ease;
-        }
-        .tour-card:hover::after {
-            left: 100%;
-        }
+        <style>
+            .tour-iframe-container {
+                position: relative;
+                width: 100%;
+                height: 0;
+                padding-bottom: 56.25%;
+                overflow: hidden;
+                border-radius: 1rem;
+                background: #0f172a;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, .25);
+            }
 
-        .tour-iframe-container {
-            position: relative;
-            width: 100%;
-            height: 0;
-            padding-bottom: 56.25%;
-            border-radius: 1rem;
-            overflow: hidden;
-            background: #0f172a;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        }
-        .tour-iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .tour-iframe-container.fullscreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            padding-bottom: 0;
-            border-radius: 0;
-            z-index: 9999;
-        }
-        .tour-iframe-container.fullscreen iframe {
-            width: 100vw;
-            height: 100vh;
-        }
+            .tour-iframe-container iframe {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+            }
 
-        .tour-placeholder {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        }
-        .tour-placeholder i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.5; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-        }
+            .tour-iframe-container.fullscreen {
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                width: 100vw;
+                height: 100vh;
+                padding-bottom: 0;
+                border-radius: 0;
+            }
 
-        .btn-fullscreen {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.15);
-            padding: 0.6rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.85rem;
-        }
-        .btn-fullscreen:hover {
-            background: rgba(59, 130, 246, 0.7);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
+            .btn-fullscreen {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                z-index: 10;
+                padding: .6rem 1rem;
+                border: 1px solid rgba(255, 255, 255, .15);
+                border-radius: .5rem;
+                color: white;
+                background: rgba(0, 0, 0, .6);
+                backdrop-filter: blur(8px);
+                transition: background .2s ease, border-color .2s ease;
+            }
 
-        .tour-loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            z-index: 5;
-            transition: opacity 0.5s ease;
-        }
-        .tour-loading.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(96, 165, 250, 0.2);
-            border-top-color: #60a5fa;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+            .btn-fullscreen:hover {
+                border-color: rgba(59, 130, 246, .5);
+                background: rgba(59, 130, 246, .75);
+            }
+
+            .tour-loading {
+                position: absolute;
+                inset: 0;
+                z-index: 5;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #0f172a;
+                transition: opacity .3s ease;
+            }
+
+            .tour-loading.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .spinner {
+                width: 48px;
+                height: 48px;
+                border: 4px solid rgba(96, 165, 250, .2);
+                border-top-color: #60a5fa;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
     @endpush
 
-    <section id="home" class="hero-section h-screen flex items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url('{{ $content['vr_background_image_url'] }}');">
-        <div class="text-center px-4">
-            <h1 class="text-4xl md:text-6xl font-bold mb-6">{{ $content['vr_title'] }}</h1>
-            <h2 class="text-3xl md:text-5xl font-bold mb-8">{{ $content['vr_subtitle'] }}</h2>
-            <p class="text-xl mb-10 max-w-3xl mx-auto">{{ $content['vr_description'] }}</p>
-            <button onclick="document.getElementById('tour')?.scrollIntoView({behavior:'smooth'})" class="mt-8 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-3 px-8 rounded-full transition duration-300 inline-flex items-center">
-                <i class="fas fa-vr-cardboard mr-2"></i> Mulai Tour
+    <section id="home" class="hero-section flex h-screen items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, .7), rgba(0, 0, 0, .7)), url('{{ $content['vr_background_image_url'] }}');">
+        <div class="px-4 text-center">
+            <h1 class="mb-6 text-4xl font-bold md:text-6xl">{{ $content['vr_title'] }}</h1>
+            <h2 class="mb-8 text-3xl font-bold md:text-5xl">{{ $content['vr_subtitle'] }}</h2>
+            <p class="mx-auto mb-10 max-w-3xl text-xl">{{ $content['vr_description'] }}</p>
+            <button type="button" onclick="document.getElementById('{{ $virtualTour ? 'tourViewer' : 'tour' }}')?.scrollIntoView({ behavior: 'smooth', block: 'start' })" class="mt-8 inline-flex items-center rounded-full bg-yellow-500 px-8 py-3 font-medium text-white transition duration-300 hover:bg-yellow-600">
+                <i class="fas fa-vr-cardboard mr-2"></i>Mulai Tour
             </button>
         </div>
     </section>
 
-    @if(count($virtualTours) > 0)
-    <section id="tour" class="py-20 bg-gradient-to-b from-gray-50 to-white" x-data="virtualTourApp()">
+    <section
+        id="tour"
+        class="bg-gradient-to-b from-gray-50 to-white py-16"
+        x-data="{
+            isFullscreen: false,
+            isLoading: true,
+            toggleFullscreen() {
+                this.isFullscreen = !this.isFullscreen;
+                document.body.style.overflow = this.isFullscreen ? 'hidden' : '';
+            },
+            exitFullscreen() {
+                this.isFullscreen = false;
+                document.body.style.overflow = '';
+            }
+        }"
+        @keydown.escape.window="if (isFullscreen) exitFullscreen()">
         <div class="container mx-auto px-6">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-800 mb-3">{{ $content['vr_section_title'] }}</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">{{ $content['vr_section_description'] }}</p>
+            <div class="mx-auto mb-8 max-w-3xl text-center">
+                <h2 class="mb-3 text-3xl font-bold text-gray-800">{{ $content['vr_section_title'] }}</h2>
+                <p class="text-gray-600">{{ $content['vr_section_description'] }}</p>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-{{ min(count($virtualTours), 4) }} gap-4 mb-8 max-w-3xl mx-auto">
-                @foreach($virtualTours as $index => $tour)
-                <div
-                    class="tour-card p-6 text-center"
-                    :class="{ 'active': activeTour === '{{ $tour['slug'] }}' }"
-                    @click="loadTour('{{ $tour['slug'] }}', '{{ $tour['url'] }}')"
-                    id="tour-card-{{ $tour['slug'] }}">
-                    <i class="{{ $tour['icon'] }} tour-icon mb-3 block"></i>
-                    <span class="tour-label">{{ $tour['name'] }}</span>
-                </div>
-                @endforeach
-            </div>
-
-            <div class="tour-iframe-container" :class="{ 'fullscreen': isFullscreen }" id="tourViewer">
-                <div class="tour-loading" :class="{ 'hidden': !isLoading }" id="tourLoading">
-                    <div class="text-center">
-                        <div class="spinner mx-auto mb-4"></div>
-                        <p class="text-slate-400 text-sm">Memuat Virtual Tour...</p>
+            @if($virtualTour)
+                <div id="tourViewer" class="tour-iframe-container mx-auto max-w-6xl scroll-mt-4" :class="{ 'fullscreen': isFullscreen }">
+                    <div class="tour-loading" :class="{ 'hidden': !isLoading }">
+                        <div class="text-center">
+                            <div class="spinner mx-auto mb-4"></div>
+                            <p class="text-sm text-slate-400">Memuat Virtual Tour...</p>
+                        </div>
                     </div>
+
+                    <iframe
+                        src="{{ $virtualTour['url'] }}"
+                        title="Virtual Tour Utama"
+                        allowfullscreen
+                        allow="gyroscope; accelerometer; xr-spatial-tracking"
+                        @load="isLoading = false">
+                    </iframe>
+
+                    <button type="button" class="btn-fullscreen" @click="toggleFullscreen()">
+                        <i :class="isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
+                        <span class="ml-1" x-text="isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen'"></span>
+                    </button>
                 </div>
 
-                <div class="tour-placeholder" x-show="!currentTourUrl">
-                    <i class="fas fa-street-view"></i>
-                    <p class="text-lg font-medium">Pilih lokasi untuk memulai</p>
-                    <p class="text-sm mt-1">Klik salah satu lokasi di atas</p>
+                <div class="mx-auto mt-8 max-w-6xl rounded-lg bg-blue-50 p-6">
+                    <h3 class="mb-2 text-lg font-semibold"><i class="fas fa-info-circle mr-2 text-blue-600"></i>Cara Menggunakan Virtual Tour</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li><i class="fas fa-mouse-pointer mr-2"></i>Klik dan geser atau sentuh layar untuk melihat ke segala arah</li>
+                        <li><i class="fas fa-hand-pointer mr-2"></i>Gunakan tombol navigasi di dalam tur untuk berpindah lokasi</li>
+                        <li><i class="fas fa-expand mr-2"></i>Gunakan tombol fullscreen untuk tampilan yang lebih luas</li>
+                    </ul>
                 </div>
-
-                <iframe
-                    x-show="currentTourUrl"
-                    :src="currentTourUrl"
-                    allowfullscreen
-                    allow="gyroscope; accelerometer; xr-spatial-tracking"
-                    @load="onIframeLoaded()"
-                    id="tourIframe">
-                </iframe>
-
-                <button
-                    class="btn-fullscreen"
-                    x-show="currentTourUrl"
-                    @click="toggleFullscreen()">
-                    <i :class="isFullscreen ? 'fas fa-compress' : 'fas fa-expand'"></i>
-                    <span class="ml-1" x-text="isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen'"></span>
-                </button>
-            </div>
-
-            <div class="mt-8 bg-blue-50 p-6 rounded-lg">
-                <h3 class="text-lg font-semibold mb-2"><i class="fas fa-info-circle text-blue-600 mr-2"></i>Cara Menggunakan Virtual Tour</h3>
-                <ul class="space-y-2 text-gray-700">
-                    <li><i class="fas fa-mouse-pointer mr-2"></i>Klik & seret atau sentuh layar untuk melihat ke segala arah</li>
-                    <li><i class="fas fa-hand-pointer mr-2"></i>Klik tombol navigasi untuk berpindah ruangan</li>
-                    <li><i class="fas fa-expand mr-2"></i>Gunakan tombol fullscreen untuk pengalaman terbaik</li>
-                    <li><i class="fas fa-mobile-alt mr-2"></i>Di mobile, miringkan perangkat untuk melihat sekeliling</li>
-                </ul>
-            </div>
+            @else
+                <div class="mx-auto max-w-3xl rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center text-yellow-800">
+                    <i class="fas fa-exclamation-circle mr-2"></i>Virtual tour belum tersedia. Admin dapat memasangnya melalui panel Virtual Tour.
+                </div>
+            @endif
         </div>
     </section>
-    @endif
 
     @include('partials.contact')
-
-    @push('scripts')
-    <script>
-        function virtualTourApp() {
-            return {
-                activeTour: '',
-                currentTourUrl: '',
-                isFullscreen: false,
-                isLoading: false,
-
-                loadTour(slug, url) {
-                    if (this.activeTour === slug) return;
-                    this.activeTour = slug;
-                    this.isLoading = true;
-                    this.currentTourUrl = url;
-                },
-
-                onIframeLoaded() {
-                    this.isLoading = false;
-                },
-
-                toggleFullscreen() {
-                    this.isFullscreen = !this.isFullscreen;
-                    if (this.isFullscreen) {
-                        document.body.style.overflow = 'hidden';
-                    } else {
-                        document.body.style.overflow = '';
-                    }
-                },
-
-                init() {
-                    document.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape' && this.isFullscreen) {
-                            this.isFullscreen = false;
-                            document.body.style.overflow = '';
-                        }
-                    });
-
-                    @if(count($virtualTours) > 0)
-                    this.$nextTick(() => {
-                        this.loadTour('{{ $virtualTours[0]['slug'] }}', '{{ $virtualTours[0]['url'] }}');
-                    });
-                    @endif
-                }
-            }
-        }
-
-    </script>
-    @endpush
 @endsection

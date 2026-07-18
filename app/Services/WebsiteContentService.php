@@ -40,7 +40,7 @@ class WebsiteContentService
             ],
             'virtual_tour' => [
                 'label' => 'Halaman Virtual Tour',
-                'description' => 'Hero dan pengantar daftar virtual tour umum.',
+                'description' => 'Hero dan petunjuk penggunaan virtual tour utama.',
             ],
             'facilities_page' => [
                 'label' => 'Halaman Fasilitas',
@@ -111,8 +111,8 @@ class WebsiteContentService
             'vr_subtitle' => self::field('virtual_tour', 'Subjudul Hero', 'text', 'VIRTUAL TOUR PRODI SISTEM INFORMASI'),
             'vr_description' => self::field('virtual_tour', 'Deskripsi Hero', 'text', 'Jelajahi fasilitas dan lingkungan kampus Universitas Pamulang secara virtual'),
             'vr_background_image' => self::field('virtual_tour', 'Gambar Latar Hero', 'image', 'https://static.republika.co.id/uploads/member/images/news/2x4cu8nrv8.jpg'),
-            'vr_section_title' => self::field('virtual_tour', 'Judul Daftar Tour', 'text', 'VIRTUAL TOUR 360°'),
-            'vr_section_description' => self::field('virtual_tour', 'Deskripsi Daftar Tour', 'text', 'Pilih lokasi di bawah untuk memulai tur virtual interaktif. Gunakan mouse atau sentuh layar untuk melihat ke segala arah.'),
+            'vr_section_title' => self::field('virtual_tour', 'Judul Virtual Tour', 'text', 'VIRTUAL TOUR 360°'),
+            'vr_section_description' => self::field('virtual_tour', 'Petunjuk Virtual Tour', 'text', 'Gunakan mouse atau sentuh layar untuk melihat ke segala arah. Gunakan tombol navigasi di dalam tur untuk berpindah lokasi.'),
 
             'facility_page_badge' => self::field('facilities_page', 'Teks Badge', 'text', 'Virtual Tour Khusus Fasilitas'),
             'facility_page_title' => self::field('facilities_page', 'Judul Halaman', 'text', 'FASILITAS UNPAM VIKTOR'),

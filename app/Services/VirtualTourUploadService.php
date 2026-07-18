@@ -19,6 +19,10 @@ class VirtualTourUploadService
 
     public const SUPPORTED_EXTENSIONS = ['zip', 'rar', 'png', 'jpg', 'jpeg', 'webp'];
 
+    public const MAIN_TOUR_NAME = 'Virtual Tour Utama';
+
+    private const MAIN_TOUR_SLUG = 'utama';
+
     private const MAX_EXTRACTED_FILES = 20000;
 
     private const MAX_EXTRACTED_BYTES = 1073741824;
@@ -31,6 +35,115 @@ class VirtualTourUploadService
     public function supports(UploadedFile $file): bool
     {
         return in_array(strtolower($file->getClientOriginalExtension()), self::SUPPORTED_EXTENSIONS, true);
+    }
+
+    public function installedTour(): ?array
+    {
+        $tourPath = public_path('virtual-tours');
+        if (! File::isDirectory($tourPath)) {
+            return null;
+        }
+
+        $directories = array_values(array_filter(
+            File::directories($tourPath),
+            fn (string $directory) => ! str_starts_with(basename($directory), '.')
+        ));
+        usort($directories, function (string $left, string $right): int {
+            $leftIsMain = basename($left) === self::MAIN_TOUR_SLUG;
+            $rightIsMain = basename($right) === self::MAIN_TOUR_SLUG;
+
+            if ($leftIsMain !== $rightIsMain) {
+                return $leftIsMain ? -1 : 1;
+            }
+
+            return File::lastModified($right) <=> File::lastModified($left);
+        });
+
+        foreach ($directories as $directory) {
+            $indexFile = $this->findPublicIndex($directory);
+            if ($indexFile === null) {
+                continue;
+            }
+
+            $files = File::allFiles($directory);
+
+            return [
+                'name' => self::MAIN_TOUR_NAME,
+                'slug' => basename($directory),
+                'directory' => $directory,
+                'url' => asset('virtual-tours/'.basename($directory).'/'.basename($indexFile)),
+                'file_count' => count($files),
+                'size_mb' => round(collect($files)->sum(fn ($file) => $file->getSize()) / 1024 / 1024, 1),
+            ];
+        }
+
+        return null;
+    }
+
+    public function deployMainTour(UploadedFile $file): string
+    {
+        $tourPath = public_path('virtual-tours');
+        File::ensureDirectoryExists($tourPath);
+
+        $targetDirectory = $tourPath.DIRECTORY_SEPARATOR.self::MAIN_TOUR_SLUG;
+        $incomingDirectory = $tourPath.DIRECTORY_SEPARATOR.'.incoming-'.Str::uuid();
+        $backupDirectory = $tourPath.DIRECTORY_SEPARATOR.'.backup-'.Str::uuid();
+        $hasBackup = false;
+
+        try {
+            $uploadType = $this->deploy($file, $incomingDirectory, self::MAIN_TOUR_NAME);
+
+            if (File::isDirectory($targetDirectory)) {
+                if (! File::moveDirectory($targetDirectory, $backupDirectory)) {
+                    throw new RuntimeException('Virtual tour lama gagal disiapkan untuk diganti.');
+                }
+                $hasBackup = true;
+            }
+
+            if (! File::moveDirectory($incomingDirectory, $targetDirectory)) {
+                throw new RuntimeException('Virtual tour baru gagal dipasang.');
+            }
+
+            if ($hasBackup) {
+                File::deleteDirectory($backupDirectory);
+            }
+
+            $this->deleteOtherTourDirectories($targetDirectory);
+
+            return $uploadType;
+        } catch (Throwable $exception) {
+            if (File::isDirectory($incomingDirectory)) {
+                File::deleteDirectory($incomingDirectory);
+            }
+
+            if ($hasBackup && File::isDirectory($backupDirectory)) {
+                if (File::isDirectory($targetDirectory)) {
+                    File::deleteDirectory($targetDirectory);
+                }
+                File::moveDirectory($backupDirectory, $targetDirectory);
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function deleteInstalledTours(): bool
+    {
+        $tourPath = public_path('virtual-tours');
+        if (! File::isDirectory($tourPath)) {
+            return false;
+        }
+
+        $deleted = false;
+        foreach (File::directories($tourPath) as $directory) {
+            if (str_starts_with(basename($directory), '.')) {
+                continue;
+            }
+
+            $deleted = File::deleteDirectory($directory) || $deleted;
+        }
+
+        return $deleted;
     }
 
     public function deploy(UploadedFile $file, string $tourDir, string $tourName): string
@@ -49,6 +162,26 @@ class VirtualTourUploadService
             }
 
             throw $exception;
+        }
+    }
+
+    private function findPublicIndex(string $directory): ?string
+    {
+        foreach (File::files($directory) as $file) {
+            if (in_array(strtolower($file->getFilename()), ['index.htm', 'index.html'], true)) {
+                return $file->getPathname();
+            }
+        }
+
+        return null;
+    }
+
+    private function deleteOtherTourDirectories(string $mainDirectory): void
+    {
+        foreach (File::directories(dirname($mainDirectory)) as $directory) {
+            if ($directory !== $mainDirectory && ! str_starts_with(basename($directory), '.')) {
+                File::deleteDirectory($directory);
+            }
         }
     }
 
