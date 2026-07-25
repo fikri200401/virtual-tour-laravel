@@ -23,7 +23,12 @@ Route::middleware(TrackVisitor::class)->group(function () {
     Route::get('/tentang', [TentangController::class, 'index'])->name('tentang');
 });
 
-Route::post('/kritik-saran', [KritikSaranController::class, 'store'])->name('kritik-saran.store');
+Route::get('/kritik-saran/captcha', [KritikSaranController::class, 'captcha'])
+    ->middleware('throttle:30,1')
+    ->name('kritik-saran.captcha');
+Route::post('/kritik-saran', [KritikSaranController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('kritik-saran.store');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
